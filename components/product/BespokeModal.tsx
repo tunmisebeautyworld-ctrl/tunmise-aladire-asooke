@@ -50,7 +50,28 @@ export default function BespokeModal({ isOpen, onClose, product }: Props) {
         },
         status: 'unread',
       });
-      toast.success('Measurements submitted! Our tailoring team will contact you shortly.');
+
+      // Dispatch bespoke confirmation to customer and cutting ticket to atelier
+      fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bespoke_request',
+          bespoke: {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            productName: product.name,
+            bust: form.bust,
+            waist: form.waist,
+            hips: form.hips,
+            height: form.height,
+            notes: form.notes,
+          },
+        }),
+      }).catch((e) => console.error('Bespoke email error:', e));
+
+      toast.success('Measurements submitted! A confirmation has been sent to your email.');
       setForm({
         name: '',
         email: '',

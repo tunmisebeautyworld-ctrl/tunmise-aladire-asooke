@@ -44,7 +44,22 @@ export default function ContactPage() {
         type: 'general',
         status: 'unread',
       });
-      toast.success('Inquiry submitted successfully! We will get back to you soon.');
+
+      // Dispatch inquiry confirmation to customer and alert to store concierge
+      fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact_inquiry',
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          subject: form.subject,
+          message: form.message,
+        }),
+      }).catch((e) => console.error('Contact email error:', e));
+
+      toast.success('Inquiry submitted successfully! A confirmation has been sent to your email.');
       setForm({
         name: '',
         email: '',

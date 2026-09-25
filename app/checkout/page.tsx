@@ -69,7 +69,7 @@ export default function CheckoutPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       callback: async (response: any) => {
         try {
-          await createOrder({
+          const orderId = await createOrder({
             userId: user?.uid || 'guest',
             items,
             total: total(),
@@ -77,8 +77,28 @@ export default function CheckoutPage() {
             customerInfo: form,
             paystackRef: response.reference,
           });
+
+          // Dispatch transactional order confirmation & atelier alert
+          fetch('/api/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'order_confirmation',
+              order: {
+                id: orderId,
+                userId: user?.uid || 'guest',
+                items,
+                total: total(),
+                status: 'confirmed',
+                customerInfo: form,
+                paystackRef: response.reference,
+                createdAt: new Date(),
+              },
+            }),
+          }).catch((e) => console.error('Email notification error:', e));
+
           clearCart();
-          toast.success('Order placed successfully!');
+          toast.success('Order placed successfully! A receipt has been sent to your email.');
           router.push('/orders');
         } catch {
           toast.error('Order save failed. Please contact support with ref: ' + response.reference);

@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Toaster } from 'react-hot-toast';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Tunmise Aladire Asooke | Modern African Fashion',
@@ -23,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-brand-cream min-h-screen`}>
+      <body className="bg-brand-cream min-h-screen font-sans">
         <AuthProvider>
           <Navbar />
           <main>{children}</main>

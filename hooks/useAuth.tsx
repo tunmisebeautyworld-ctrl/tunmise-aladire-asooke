@@ -84,31 +84,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accounts = [];
       }
 
-      const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
-      if (existing) {
-        if (existing.pass !== password) {
-          throw new Error('Incorrect password. Please try again.');
+      // 1. Direct Store Administrator Authentication
+      const isAdminAccount = email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
+      if (isAdminAccount) {
+        if (password !== 'TUNMISE2026') {
+          throw new Error('Incorrect password. Please verify your admin password.');
         }
+
+        const adminUser = {
+          uid: 'admin_tunmise_aladire',
+          email: 'tunmisebeautyworld@gmail.com',
+          displayName: 'Tunmise Aladire',
+        } as User;
+
+        const adminProfile: UserProfile = {
+          uid: adminUser.uid,
+          email: 'tunmisebeautyworld@gmail.com',
+          displayName: 'Tunmise Aladire',
+          role: 'admin',
+          createdAt: new Date(),
+        };
+
+        setUser(adminUser);
+        setProfile(adminProfile);
+        localStorage.setItem('tunmise_active_user', JSON.stringify(adminUser));
+        localStorage.setItem('tunmise_active_profile', JSON.stringify(adminProfile));
+
+        toast.success('Welcome back, Admin!');
+        return;
       }
 
-      const displayName = existing ? existing.name : email.split('@')[0].replace(/[._]/g, ' ');
-      const formattedName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-      // Only designated store administrator email can have admin privileges
-      const isStoreAdmin = email.toLowerCase() === 'admin@tunmisealadire.com' ||
-                           email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
-      const role: 'admin' | 'customer' = existing?.role ? existing.role : (isStoreAdmin ? 'admin' : 'customer');
+      // 2. Registered Member / Customer Authentication
+      const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+      if (!existing) {
+        throw new Error('No account found with this email. Please click "Create Account" below to register.');
+      }
+
+      if (existing.pass !== password) {
+        throw new Error('Incorrect password. Please try again.');
+      }
 
       const activeUser = {
         uid: 'usr_' + Math.random().toString(36).substring(2, 10),
-        email,
-        displayName: formattedName,
+        email: existing.email,
+        displayName: existing.name,
       } as User;
 
       const userProfile: UserProfile = {
         uid: activeUser.uid,
-        email,
-        displayName: formattedName,
-        role,
+        email: existing.email,
+        displayName: existing.name,
+        role: existing.role || 'customer',
         createdAt: new Date(),
       };
 
@@ -117,12 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
       localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
 
-      if (!existing) {
-        accounts.push({ name: formattedName, email, pass: password, role });
-        localStorage.setItem('tunmise_accounts', JSON.stringify(accounts));
-      }
-
-      toast.success(`Welcome back, ${formattedName}!`);
+      toast.success(`Welcome back, ${existing.name}!`);
       return;
     }
 
@@ -180,6 +201,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
       localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
 
+      // Dispatch welcome & verification email in background
+      const verificationOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'otp_verification',
+          name: name.trim(),
+          email,
+          otp: verificationOtp,
+        }),
+      }).catch((e) => console.error('Welcome email error:', e));
+
       toast.success(`Account created! Welcome, ${name.trim()}!`);
       return;
     }
@@ -187,6 +221,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // ─── Production Firebase Auth ───
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await createUserProfile(cred.user.uid, { email, displayName: name, role: 'customer' });
+
+    // Dispatch verification email for production signup
+    const prodOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    fetch('/api/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'otp_verification',
+        name: name.trim(),
+        email,
+        otp: prodOtp,
+      }),
+    }).catch((e) => console.error('Welcome email error:', e));
   };
 
   const loginWithGoogle = async () => {

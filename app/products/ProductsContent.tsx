@@ -232,19 +232,31 @@ export default function ProductsContent() {
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      toast.success('Thank you! You will be the first to know when Beads & Accessories launches.');
+                      const formEl = e.currentTarget;
+                      const input = formEl.elements.namedItem('vipEmail') as HTMLInputElement;
+                      const emailVal = input?.value || '';
+                      if (emailVal) {
+                        fetch('/api/email', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ type: 'beads_vip_waitlist', email: emailVal }),
+                        }).catch((err) => console.error('VIP email error:', err));
+                        toast.success('VIP access confirmed! A confirmation has been sent to your email.');
+                        formEl.reset();
+                      }
                     }}
                     className="flex flex-col sm:flex-row gap-2"
                   >
                     <input
+                      name="vipEmail"
                       type="email"
                       required
                       placeholder="Enter your email address"
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/90 text-[#1e1b4b] placeholder:text-gray-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]"
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/90 text-[#18181b] placeholder:text-gray-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
                     />
                     <button
                       type="submit"
-                      className="px-6 py-3 bg-[#d97706] hover:bg-[#f59e0b] text-[#1e1b4b] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+                      className="px-6 py-3 bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap btn-shimmer"
                     >
                       Notify Me
                     </button>
