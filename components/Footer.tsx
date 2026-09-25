@@ -59,6 +59,11 @@ export default function Footer() {
                 </button>
               </li>
               <li>
+                <Link href="/track-order" className="hover:text-[#d97706] transition-colors">
+                  Track Your Order
+                </Link>
+              </li>
+              <li>
                 <Link href="/contact" className="hover:text-[#d97706] transition-colors">
                   Contact Us
                 </Link>

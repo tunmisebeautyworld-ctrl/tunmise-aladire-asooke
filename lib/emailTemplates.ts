@@ -4,7 +4,7 @@
 import type { Order } from '@/types';
 
 const STORE_NAME = 'Tunmise Aladire Asooke';
-const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'https://tunmise-aladire-asooke.vercel.app';
+const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'https://tunmisealadire.ng';
 const ATELIER_ADDRESS = 'LKJ Business Hub, NYSC Bus Stop, Igando, Lagos, Nigeria';
 
 function baseEmailWrapper(title: string, contentHtml: string): string {
@@ -144,9 +144,12 @@ export function getOrderReceiptHtml(order: Order): string {
 
     <!-- Action Button -->
     <div style="text-align: center;">
-      <a href="${STORE_URL}/orders" style="display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">
-        View My Orders
+      <a href="${STORE_URL}/track-order?orderId=${order.id}" style="display: inline-block; background-color: #c2410c; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">
+        Track Order Status Live
       </a>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #71717a;">
+        You can also view this order anytime in <a href="${STORE_URL}/orders" style="color: #18181b; text-decoration: underline;">My Orders</a>.
+      </p>
     </div>
   `;
 
@@ -505,3 +508,158 @@ export function getBeadsVipConfirmationHtml(email: string): string {
 
   return baseEmailWrapper('VIP Early Access: Beads & Accessories', content);
 }
+
+// ─── 8. Order Status Update Notification ──────────────────────────────────────
+
+export function getOrderStatusUpdateHtml(order: Order, notes?: string): string {
+  const statusDisplayMap: Record<Order['status'], { title: string; subtitle: string; badgeBg: string; badgeColor: string; description: string }> = {
+    pending: {
+      title: 'Order Received',
+      subtitle: 'Awaiting Payment Verification',
+      badgeBg: 'rgba(217, 119, 6, 0.1)',
+      badgeColor: '#d97706',
+      description: 'Your order has been received. Our concierge team is verifying payment confirmation before production begins.',
+    },
+    confirmed: {
+      title: 'Order Confirmed',
+      subtitle: 'Payment Verified & Queued',
+      badgeBg: 'rgba(30, 27, 75, 0.08)',
+      badgeColor: '#1e1b4b',
+      description: 'Your order and payment have been confirmed. Our cutting team is preparing the fabric cuts for your garments.',
+    },
+    in_production: {
+      title: 'In Atelier Tailoring',
+      subtitle: 'Hand-Crafting in Progress',
+      badgeBg: 'rgba(194, 65, 12, 0.12)',
+      badgeColor: '#c2410c',
+      description: 'Our master artisans and weavers at our Lagos studio have begun tailoring and detailing your selected pieces.',
+    },
+    shipped: {
+      title: 'Dispatched for Delivery',
+      subtitle: 'On the Way to You',
+      badgeBg: 'rgba(147, 51, 234, 0.1)',
+      badgeColor: '#7e22ce',
+      description: 'Your package has passed our quality check, been carefully boxed, and handed over to our delivery partner for transit.',
+    },
+    delivered: {
+      title: 'Order Delivered',
+      subtitle: 'Successfully Received',
+      badgeBg: 'rgba(16, 185, 129, 0.1)',
+      badgeColor: '#059669',
+      description: 'Your order has been safely delivered to your address. Thank you for choosing Tunmise Aladire Asooke.',
+    },
+    cancelled: {
+      title: 'Order Cancelled',
+      subtitle: 'Status Update',
+      badgeBg: 'rgba(239, 68, 68, 0.1)',
+      badgeColor: '#dc2626',
+      description: 'This order has been cancelled. If you have questions or require assistance, please contact our support team.',
+    },
+  };
+
+  const statusInfo = statusDisplayMap[order.status] || {
+    title: 'Order Status Update',
+    subtitle: order.status,
+    badgeBg: 'rgba(194, 65, 12, 0.1)',
+    badgeColor: '#c2410c',
+    description: `Your order status has been updated to: ${order.status}.`,
+  };
+
+  const itemsRows = order.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6;">
+          <p style="margin: 0; font-size: 13px; font-weight: 600; color: #18181b;">${item.product.name}</p>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: #71717a;">
+            Size: ${item.selectedSize} &bull; Color: ${item.selectedColor.split('|')[0]}
+          </p>
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: center; font-size: 13px; color: #18181b;">
+          Qty: ${item.quantity}
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: right; font-size: 13px; font-weight: 600; color: #18181b;">
+          &#8358;${(item.product.price * item.quantity).toLocaleString()}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 28px;">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: ${statusInfo.badgeColor}; background-color: ${statusInfo.badgeBg}; padding: 6px 14px; border-radius: 20px; display: inline-block;">
+        ${statusInfo.subtitle}
+      </span>
+      <h1 style="font-family: Georgia, serif; font-size: 26px; color: #18181b; margin: 16px 0 8px 0;">${statusInfo.title}</h1>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.5;">
+        Dear ${order.customerInfo.name}, here is the latest update on your order.
+      </p>
+    </div>
+
+    <!-- Status Note / Description Box -->
+    <div style="background-color: #faf8f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: #18181b; line-height: 1.6;">
+        ${statusInfo.description}
+      </p>
+      ${
+        notes
+          ? `<div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(0, 0, 0, 0.1);">
+              <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #c2410c;">
+                Dispatch & Courier Notes:
+              </p>
+              <p style="margin: 0; font-size: 13px; color: #18181b; font-style: italic; line-height: 1.5;">
+                &ldquo;${notes}&rdquo;
+              </p>
+            </div>`
+          : ''
+      }
+    </div>
+
+    <!-- Order Metadata Box -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #f4efe6; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; font-size: 13px;">
+      <tr>
+        <td style="padding: 5px 0; color: #71717a; width: 45%;">Order Number:</td>
+        <td style="padding: 5px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Current Status:</td>
+        <td style="padding: 5px 0; color: ${statusInfo.badgeColor}; font-weight: 700; text-transform: uppercase; font-size: 11px;">
+          ${statusInfo.title}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Destination:</td>
+        <td style="padding: 5px 0; color: #18181b; font-weight: 500;">
+          ${order.customerInfo.city}, ${order.customerInfo.state}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Items Section -->
+    <h3 style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #71717a; margin: 0 0 10px 0;">
+      Order Items
+    </h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px; border-collapse: collapse;">
+      ${itemsRows}
+      <tr>
+        <td colspan="2" style="padding-top: 14px; font-size: 14px; font-weight: 700; color: #18181b;">Order Total</td>
+        <td style="padding-top: 14px; font-size: 16px; font-weight: 700; color: #c2410c; text-align: right;">
+          &#8358;${order.total.toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Call to action button -->
+    <div style="text-align: center; margin-top: 28px;">
+      <a href="${STORE_URL}/track-order?orderId=${order.id}" style="display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">
+        Track Live Progress
+      </a>
+      <p style="margin: 12px 0 0 0; font-size: 12px; color: #71717a;">
+        Questions about your delivery? Reply directly to this email or visit our <a href="${STORE_URL}/contact" style="color: #c2410c; text-decoration: underline;">concierge desk</a>.
+      </p>
+    </div>
+  `;
+
+  return baseEmailWrapper(`Update on Order #${order.id.slice(0, 10).toUpperCase()} - ${statusInfo.title}`, content);
+}
+

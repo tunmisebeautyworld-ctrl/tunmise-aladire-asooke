@@ -98,8 +98,8 @@ export default function CheckoutPage() {
           }).catch((e) => console.error('Email notification error:', e));
 
           clearCart();
-          toast.success('Order placed successfully! A receipt has been sent to your email.');
-          router.push('/orders');
+          toast.success('Order placed successfully! Live tracker opened and receipt emailed.');
+          router.push(`/track-order?orderId=${orderId}`);
         } catch {
           toast.error('Order save failed. Please contact support with ref: ' + response.reference);
         } finally {

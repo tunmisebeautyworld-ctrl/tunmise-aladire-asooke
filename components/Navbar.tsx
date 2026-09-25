@@ -54,6 +54,7 @@ export default function Navbar() {
       label: 'Beads & Accessories',
       badge: beadsStatus === 'coming_soon' ? 'Soon' : undefined,
     },
+    { href: '/track-order', label: 'Track Order' },
   ];
 
   return (
@@ -152,6 +153,13 @@ export default function Navbar() {
                         >
                           My Orders
                         </Link>
+                        <Link
+                          href="/track-order"
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Track Order
+                        </Link>
                         {profile?.role === 'admin' && (
                           <Link
                             href="/admin"
@@ -170,6 +178,13 @@ export default function Navbar() {
                       </>
                     ) : (
                       <>
+                        <Link
+                          href="/track-order"
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Track Order
+                        </Link>
                         <Link
                           href="/login"
                           className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

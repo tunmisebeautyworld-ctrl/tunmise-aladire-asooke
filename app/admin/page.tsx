@@ -30,13 +30,16 @@ import {
   FiMessageSquare,
   FiSend,
   FiMinus,
+  FiExternalLink,
+  FiTruck,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
-const STATUS_OPTIONS: Order['status'][] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+const STATUS_OPTIONS: Order['status'][] = ['pending', 'confirmed', 'in_production', 'shipped', 'delivered', 'cancelled'];
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
   confirmed: 'bg-blue-100 text-blue-800 border border-blue-200',
+  in_production: 'bg-amber-100 text-amber-800 border border-amber-200',
   shipped: 'bg-purple-100 text-purple-800 border border-purple-200',
   delivered: 'bg-green-100 text-green-800 border border-green-200',
   cancelled: 'bg-red-100 text-red-800 border border-red-200',
@@ -63,6 +66,8 @@ export default function AdminDashboard() {
 
   // Orders filters state
   const [orderFilter, setOrderFilter] = useState<string>('all');
+  const [orderNotes, setOrderNotes] = useState<Record<string, string>>({});
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // Messages state
   const [selectedMessage, setSelectedMessage] = useState<CustomerMessage | null>(null);
@@ -154,14 +159,43 @@ export default function AdminDashboard() {
     }
   };
 
-  // Handle Order Status Change
-  const handleStatusChange = async (orderId: string, status: Order['status']) => {
+  // Handle Order Status Change & Automatic Customer Notification
+  const handleStatusChange = async (orderId: string, status: Order['status'], customNotes?: string) => {
+    setUpdatingOrderId(orderId);
     try {
-      await updateOrderStatus(orderId, status);
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
-      toast.success(`Order status updated to ${status}`);
+      const targetOrder = orders.find((o) => o.id === orderId);
+      const notes = customNotes !== undefined ? customNotes : (orderNotes[orderId] ?? targetOrder?.deliveryNotes ?? '');
+
+      await updateOrderStatus(orderId, status, notes);
+
+      const updatedOrder: Order | null = targetOrder
+        ? { ...targetOrder, status, ...(notes ? { deliveryNotes: notes } : {}) }
+        : null;
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status, ...(notes ? { deliveryNotes: notes } : {}) } : o))
+      );
+
+      // Trigger automatic transactional status email to customer
+      if (updatedOrder && updatedOrder.customerInfo?.email) {
+        fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'order_status_update',
+            order: updatedOrder,
+            notes: notes || undefined,
+          }),
+        }).catch((err) => console.error('Failed to dispatch status email:', err));
+
+        toast.success(`Status updated to "${status.replace('_', ' ')}" & email dispatched to customer!`);
+      } else {
+        toast.success(`Order status updated to ${status.replace('_', ' ')}`);
+      }
     } catch {
       toast.error('Failed to update order status');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -549,89 +583,176 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center flex-wrap gap-4">
               <div>
                 <h2 className="text-xl font-bold text-[#1e1b4b] font-serif">Customer Orders</h2>
-                <p className="text-xs text-gray-500">View payment references and update shipping statuses</p>
+                <p className="text-xs text-gray-500">
+                  Update atelier status and dispatch notes. Updating an order automatically notifies the customer by email.
+                </p>
               </div>
               <div className="flex flex-wrap gap-1 bg-[#1e1b4b]/5 p-1 rounded-xl">
-                {['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((f) => (
+                {[
+                  { key: 'all', label: 'All Orders' },
+                  { key: 'pending', label: 'Pending' },
+                  { key: 'confirmed', label: 'Confirmed' },
+                  { key: 'in_production', label: 'In Production' },
+                  { key: 'shipped', label: 'Shipped' },
+                  { key: 'delivered', label: 'Delivered' },
+                  { key: 'cancelled', label: 'Cancelled' },
+                ].map(({ key, label }) => (
                   <button
-                    key={f}
-                    onClick={() => setOrderFilter(f)}
-                    className={`px-3 py-1.5 text-xs font-bold capitalize rounded-lg transition-all cursor-pointer ${
-                      orderFilter === f
+                    key={key}
+                    onClick={() => setOrderFilter(key)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      orderFilter === key
                         ? 'bg-white text-[#1e1b4b] shadow-sm'
                         : 'text-gray-500 hover:text-[#1e1b4b]'
                     }`}
                   >
-                    {f}
+                    {label}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Orders Feed */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between gap-6 hover:shadow-md transition-shadow">
-                  {/* Customer Information */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <p className="font-mono text-xs text-[#1e1b4b]/40 font-semibold bg-gray-100 px-2 py-0.5 rounded">
-                        #{order.id.slice(0, 8).toUpperCase()}
+                <div
+                  key={order.id}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-5 hover:shadow-md transition-shadow"
+                >
+                  {/* Order Card Top Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="font-mono text-xs text-[#1e1b4b] font-bold bg-gray-100 px-2.5 py-1 rounded-md">
+                        #{order.id.slice(0, 10).toUpperCase()}
                       </p>
-                      <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString()}</span>
-                    </div>
-
-                    <div>
-                      <p className="font-bold text-base text-[#1e1b4b]">{order.customerInfo?.name}</p>
-                      <p className="text-xs text-gray-500 font-medium">
-                        {order.customerInfo?.email} &bull; {order.customerInfo?.phone}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Shipping Address: {order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state}
-                      </p>
-                    </div>
-
-                    {/* Bought Items list */}
-                    <div className="border-t border-gray-100 pt-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Items Purchased</p>
-                      <ul className="text-sm space-y-1">
-                        {order.items.map((item, i) => (
-                          <li key={i} className="text-[#1e1b4b]/80 font-medium">
-                            {item.product.name} &times; <span className="font-bold text-black">{item.quantity}</span>
-                            <span className="text-xs text-gray-400 ml-1.5">
-                              (Size: {item.selectedSize} | Color: {item.selectedColor.split('|')[0]})
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Pricing and Action */}
-                  <div className="flex flex-col justify-between items-end text-right min-w-[200px]">
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Total paid</p>
-                      <p className="text-2xl font-black text-[#c2410c]">₦{order.total.toLocaleString()}</p>
+                      <span className="text-xs text-gray-400">
+                        {new Date(order.createdAt).toLocaleString()}
+                      </span>
                       {order.paystackRef && (
-                        <p className="text-[10px] text-gray-400 font-mono">Ref: {order.paystackRef}</p>
+                        <span className="text-[11px] text-gray-400 font-mono">
+                          Ref: {order.paystackRef}
+                        </span>
                       )}
                     </div>
 
-                    <div className="mt-4 md:mt-0 space-y-1.5 w-full md:w-auto">
-                      <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                        Delivery Status
-                      </label>
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
-                        className={`w-full md:w-auto text-xs px-3 py-1.5 rounded-full font-bold uppercase border focus:ring-1 focus:ring-[#d97706] cursor-pointer ${STATUS_COLORS[order.status]}`}
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/track-order?orderId=${order.id}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#c2410c] hover:bg-[#c2410c]/15 bg-[#c2410c]/10 px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
+                        <FiExternalLink size={13} /> View Live Tracker
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Order Details Body */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Customer & Destination */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Customer & Delivery</p>
+                      <p className="font-bold text-sm text-[#1e1b4b]">{order.customerInfo?.name}</p>
+                      <p className="text-xs text-gray-600 font-medium">
+                        {order.customerInfo?.email}
+                      </p>
+                      <p className="text-xs text-gray-600 font-medium">
+                        {order.customerInfo?.phone}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed bg-[#faf8f5] p-2.5 rounded-lg border border-[#f4efe6]">
+                        {order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state}
+                      </p>
+                    </div>
+
+                    {/* Purchased Items List */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Items Ordered</p>
+                      <ul className="text-xs space-y-2 divide-y divide-gray-50">
+                        {order.items.map((item, i) => (
+                          <li key={i} className="pt-1.5 first:pt-0">
+                            <p className="font-semibold text-[#1e1b4b]">{item.product.name}</p>
+                            <p className="text-[11px] text-gray-500">
+                              Qty: <span className="font-bold text-[#1e1b4b]">{item.quantity}</span> &bull; Size: {item.selectedSize} &bull; Color: {item.selectedColor.split('|')[0]}
+                            </p>
+                            <p className="text-[11px] font-bold text-[#c2410c]">
+                              ₦{(item.product.price * item.quantity).toLocaleString()}
+                            </p>
+                          </li>
                         ))}
-                      </select>
+                      </ul>
+                      <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs">
+                        <span className="font-semibold text-gray-500">Total Paid:</span>
+                        <span className="font-extrabold text-base text-[#c2410c]">
+                          ₦{order.total.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status Management & Delivery Notes */}
+                    <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200/60 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <label className="block text-[11px] uppercase font-bold text-gray-500 tracking-wider">
+                          Order Status (Notifies Customer)
+                        </label>
+                        <select
+                          value={order.status}
+                          disabled={updatingOrderId === order.id}
+                          onChange={(e) =>
+                            handleStatusChange(order.id, e.target.value as Order['status'])
+                          }
+                          className={`w-full text-xs px-3 py-2 rounded-xl font-bold uppercase border focus:ring-1 focus:ring-[#d97706] cursor-pointer ${STATUS_COLORS[order.status]}`}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                              {s.replace('_', ' ')}
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="pt-1">
+                          <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">
+                            Courier / Rider Notes:
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="e.g. Courier: GIG Logistics #GIG-29182. Delivery rider scheduled for tomorrow."
+                            value={
+                              orderNotes[order.id] !== undefined
+                                ? orderNotes[order.id]
+                                : order.deliveryNotes || ''
+                            }
+                            onChange={(e) =>
+                              setOrderNotes((prev) => ({ ...prev, [order.id]: e.target.value }))
+                            }
+                            className="w-full text-xs p-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#d97706] resize-none"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={updatingOrderId === order.id}
+                        onClick={() =>
+                          handleStatusChange(
+                            order.id,
+                            order.status,
+                            orderNotes[order.id] !== undefined
+                              ? orderNotes[order.id]
+                              : order.deliveryNotes || ''
+                          )
+                        }
+                        className="w-full bg-[#1e1b4b] hover:bg-[#312e81] text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                      >
+                        {updatingOrderId === order.id ? (
+                          <>
+                            <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                            Updating & Notifying...
+                          </>
+                        ) : (
+                          <>
+                            <FiTruck size={13} /> Update & Send Email
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>

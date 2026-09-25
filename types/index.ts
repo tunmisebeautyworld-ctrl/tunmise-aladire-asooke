@@ -25,7 +25,7 @@ export interface Order {
   userId: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'in_production' | 'shipped' | 'delivered' | 'cancelled';
   customerInfo: {
     name: string;
     email: string;
@@ -36,6 +36,9 @@ export interface Order {
   };
   paystackRef: string;
   createdAt: Date;
+  deliveryNotes?: string;
+  trackingNumber?: string;
+  courierName?: string;
 }
 
 export interface UserProfile {

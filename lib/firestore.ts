@@ -124,33 +124,175 @@ export async function deleteProduct(id: string): Promise<void> {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
-  const ref = await addDoc(collection(db, 'orders'), {
-    ...data,
-    createdAt: serverTimestamp(),
-  });
-  return ref.id;
+  let orderId = 'ORD-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+  if (isFirebaseConfigured()) {
+    try {
+      const ref = await addDoc(collection(db, 'orders'), {
+        ...data,
+        createdAt: serverTimestamp(),
+      });
+      orderId = ref.id;
+    } catch (e) {
+      console.warn('Firebase order creation error, using fallback:', e);
+    }
+  }
+
+  // Always persist locally in browser for offline/instant tracking and demo support
+  if (typeof window !== 'undefined') {
+    try {
+      let orders: Order[] = [];
+      const saved = localStorage.getItem('tunmise_orders');
+      if (saved) orders = JSON.parse(saved);
+      const newOrder: Order = {
+        ...data,
+        id: orderId,
+        createdAt: new Date(),
+      };
+      orders.unshift(newOrder);
+      localStorage.setItem('tunmise_orders', JSON.stringify(orders));
+    } catch {
+      // ignore
+    }
+  }
+
+  return orderId;
+}
+
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  const cleanId = orderId.trim().replace(/^#/, '');
+
+  if (isFirebaseConfigured()) {
+    try {
+      const snap = await getDoc(doc(db, 'orders', cleanId));
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as Order;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Check local storage
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('tunmise_orders');
+      if (saved) {
+        const localOrders: Order[] = JSON.parse(saved);
+        const match = localOrders.find(
+          (o) =>
+            o.id.toLowerCase() === cleanId.toLowerCase() ||
+            o.id.toLowerCase().startsWith(cleanId.toLowerCase()) ||
+            cleanId.toLowerCase().includes(o.id.slice(0, 8).toLowerCase())
+        );
+        if (match) return match;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return null;
 }
 
 export async function getOrdersByUser(userId: string): Promise<Order[]> {
-  if (!isFirebaseConfigured()) return [];
-  const q = query(
-    collection(db, 'orders'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+  let dbOrders: Order[] = [];
+  if (isFirebaseConfigured()) {
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      const snap = await getDocs(q);
+      dbOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+    } catch {
+      // ignore
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('tunmise_orders');
+      if (saved) {
+        const localOrders: Order[] = JSON.parse(saved);
+        localOrders
+          .filter((o) => o.userId === userId || userId === 'guest')
+          .forEach((lo) => {
+            if (!dbOrders.some((dbo) => dbo.id === lo.id)) {
+              dbOrders.push(lo);
+            }
+          });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return dbOrders;
 }
 
 export async function getAllOrders(): Promise<Order[]> {
-  if (!isFirebaseConfigured()) return [];
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+  let dbOrders: Order[] = [];
+  if (isFirebaseConfigured()) {
+    try {
+      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      dbOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+    } catch {
+      // ignore
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('tunmise_orders');
+      if (saved) {
+        const localOrders: Order[] = JSON.parse(saved);
+        localOrders.forEach((lo) => {
+          if (!dbOrders.some((dbo) => dbo.id === lo.id)) {
+            dbOrders.push(lo);
+          }
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return dbOrders;
 }
 
-export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
-  await updateDoc(doc(db, 'orders', orderId), { status });
+export async function updateOrderStatus(
+  orderId: string,
+  status: Order['status'],
+  notes?: string
+): Promise<void> {
+  if (isFirebaseConfigured()) {
+    try {
+      await updateDoc(doc(db, 'orders', orderId), {
+        status,
+        ...(notes ? { deliveryNotes: notes } : {}),
+      });
+    } catch (e) {
+      console.warn('Firebase order update error:', e);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('tunmise_orders');
+      if (saved) {
+        const orders: Order[] = JSON.parse(saved);
+        const updated = orders.map((o) =>
+          o.id === orderId ? { ...o, status, ...(notes ? { deliveryNotes: notes } : {}) } : o
+        );
+        localStorage.setItem('tunmise_orders', JSON.stringify(updated));
+      }
+    } catch {
+      // ignore
+    }
+  }
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────

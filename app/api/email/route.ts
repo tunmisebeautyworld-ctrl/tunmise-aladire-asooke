@@ -8,12 +8,13 @@ import {
   getContactCustomerReceiptHtml,
   getAdminContactAlertHtml,
   getBeadsVipConfirmationHtml,
+  getOrderStatusUpdateHtml,
   type BespokeData,
 } from '@/lib/emailTemplates';
 import type { Order } from '@/types';
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
-const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'orders@tunmisealadire.com';
+const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'orders@tunmisealadire.ng';
 const BREVO_SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Tunmise Aladire Asooke';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'tunmisebeautyworld@gmail.com';
 
@@ -195,6 +196,36 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: 'VIP Waitlist email dispatched' });
+      }
+
+      // ─── 6. Order Status Update Notification ───
+      case 'order_status_update': {
+        const order = body.order as Order;
+        const notes = body.notes as string | undefined;
+        if (!order || !order.customerInfo?.email) {
+          return NextResponse.json({ error: 'Missing order details or recipient email' }, { status: 400 });
+        }
+
+        const statusTitles: Record<Order['status'], string> = {
+          pending: 'Received & Verifying',
+          confirmed: 'Confirmed & Queued',
+          in_production: 'In Atelier Tailoring',
+          shipped: 'Dispatched for Delivery',
+          delivered: 'Delivered',
+          cancelled: 'Cancelled',
+        };
+
+        const statusLabel = statusTitles[order.status] || order.status;
+        const statusHtml = getOrderStatusUpdateHtml(order, notes);
+
+        await sendBrevoEmail({
+          toEmail: order.customerInfo.email,
+          toName: order.customerInfo.name,
+          subject: `Order Update: #${order.id.slice(0, 8).toUpperCase()} is now ${statusLabel} - Tunmise Aladire Asooke`,
+          htmlContent: statusHtml,
+        });
+
+        return NextResponse.json({ success: true, message: 'Order status notification dispatched' });
       }
 
       default:
