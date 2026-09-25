@@ -18,6 +18,8 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [beadsStatus, setBeadsStatus] = useState<'coming_soon' | 'active'>('coming_soon');
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     getStoreSettings().then((s) => setBeadsStatus(s.beadsAccessoriesStatus));
@@ -26,7 +28,21 @@ export default function Navbar() {
       getStoreSettings().then((s) => setBeadsStatus(s.beadsAccessoriesStatus));
     };
     window.addEventListener('store_settings_updated', handleUpdate);
-    return () => window.removeEventListener('store_settings_updated', handleUpdate);
+
+    const handleScroll = () => {
+      const top = window.scrollY;
+      setScrolled(top > 15);
+      const totalDoc = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalDoc > 0) {
+        setScrollProgress(Math.min(100, Math.max(0, (top / totalDoc) * 100)));
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('store_settings_updated', handleUpdate);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const navLinks = [
@@ -42,17 +58,22 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Announcement Bar - Physical Studio & Hours */}
-      <div className="bg-[#2e1b12] text-[#fefce8] text-[9px] sm:text-xs tracking-[0.16em] font-semibold py-2 px-4 text-center uppercase border-b border-[#d97706]/10 flex items-center justify-center gap-2 flex-wrap">
-        <span>LAGOS STUDIO: SHOP FF29 & K-KLAMP 7&8, LKJ HUB, IGANDO</span>
-        <span className="hidden sm:inline text-[#d97706]">✦</span>
-        <span>OPEN 9AM - 7PM (MON - SAT) ONLINE & WALK-IN</span>
-      </div>
+      {/* Main Navbar with Scroll Animation & Glassmorphism */}
+      <nav
+        className={`sticky top-0 z-40 text-[#1e1b4b] transition-all duration-300 ${
+          scrolled
+            ? 'bg-[#fefce8]/90 backdrop-blur-md shadow-md border-b border-[#d97706]/30'
+            : 'bg-[#fefce8] border-b border-[#1e1b4b]/10'
+        }`}
+      >
+        {/* Animated Scroll Progress Bar */}
+        <div
+          className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-[#d97706] via-[#c2410c] to-[#1e1b4b] transition-all duration-100 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
 
-      {/* Main Navbar */}
-      <nav className="sticky top-0 z-40 bg-[#fefce8]/95 backdrop-blur-md text-[#1e1b4b] border-b border-[#d97706]/20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'h-14 sm:h-16' : 'h-16 sm:h-20'}`}>
             
             {/* Left Column: Logo */}
             <div className="flex-1 flex justify-start">

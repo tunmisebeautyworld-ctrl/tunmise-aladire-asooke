@@ -21,7 +21,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (customEmail?: string, customName?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -33,18 +33,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ─── Demo Mode Auth Bypass ───
+    // ─── Local Persistent Auth (Active when Firebase keys not provided) ───
     if (!isFirebaseConfigured()) {
       const timer = setTimeout(() => {
         try {
-          const storedUser = sessionStorage.getItem('demo_user');
-          const storedProfile = sessionStorage.getItem('demo_profile');
+          const storedUser = localStorage.getItem('tunmise_active_user');
+          const storedProfile = localStorage.getItem('tunmise_active_profile');
           if (storedUser && storedProfile) {
             setUser(JSON.parse(storedUser));
             setProfile(JSON.parse(storedProfile));
           }
         } catch {
-          // ignore corrupted session storage
+          // ignore corrupted local storage
         } finally {
           setLoading(false);
         }
@@ -67,26 +67,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // ─── Demo Mode Auth Bypass ───
+    if (!email || !email.includes('@')) {
+      throw new Error('Please enter a valid email address');
+    }
+    if (!password) {
+      throw new Error('Please enter your password');
+    }
+
+    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
     if (!isFirebaseConfigured()) {
-      if (email.includes('@')) {
-        const mockUser = { uid: 'demo-admin-uid', email } as User;
-        const mockProfile = {
-          uid: 'demo-admin-uid',
-          email,
-          displayName: 'Demo Administrator',
-          role: email.toLowerCase().includes('admin') ? 'admin' : 'customer',
-          createdAt: new Date(),
-        } as UserProfile;
-        
-        setUser(mockUser);
-        setProfile(mockProfile);
-        sessionStorage.setItem('demo_user', JSON.stringify(mockUser));
-        sessionStorage.setItem('demo_profile', JSON.stringify(mockProfile));
-        toast.success(`Logged in as Demo ${mockProfile.role === 'admin' ? 'Admin' : 'Customer'}!`);
-        return;
+      let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
+      try {
+        const saved = localStorage.getItem('tunmise_accounts');
+        if (saved) accounts = JSON.parse(saved);
+      } catch {
+        accounts = [];
       }
-      throw new Error('Please enter a valid email format for demo bypass');
+
+      const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+      if (existing) {
+        if (existing.pass !== password) {
+          throw new Error('Incorrect password. Please try again.');
+        }
+      }
+
+      const displayName = existing ? existing.name : email.split('@')[0].replace(/[._]/g, ' ');
+      const formattedName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+      const isOwner = email.toLowerCase().includes('admin') || 
+                      email.toLowerCase().includes('tunmise') ||
+                      email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
+      const role: 'admin' | 'customer' = existing?.role || (isOwner ? 'admin' : 'customer');
+
+      const activeUser = {
+        uid: 'usr_' + Math.random().toString(36).substring(2, 10),
+        email,
+        displayName: formattedName,
+      } as User;
+
+      const userProfile: UserProfile = {
+        uid: activeUser.uid,
+        email,
+        displayName: formattedName,
+        role,
+        createdAt: new Date(),
+      };
+
+      setUser(activeUser);
+      setProfile(userProfile);
+      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
+      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+
+      if (!existing) {
+        accounts.push({ name: formattedName, email, pass: password, role });
+        localStorage.setItem('tunmise_accounts', JSON.stringify(accounts));
+      }
+
+      toast.success(`Welcome back, ${formattedName}!`);
+      return;
     }
 
     // ─── Production Firebase Auth ───
@@ -94,22 +131,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signup = async (email: string, password: string, name: string) => {
-    // ─── Demo Mode Auth Bypass ───
-    if (!isFirebaseConfigured()) {
-      const mockUser = { uid: 'demo-user-uid', email } as User;
-      const mockProfile = {
-        uid: 'demo-user-uid',
-        email,
-        displayName: name,
-        role: 'customer',
-        createdAt: new Date(),
-      } as UserProfile;
+    if (!email || !email.includes('@')) {
+      throw new Error('Please provide a valid email address');
+    }
+    if (!password || password.length < 6) {
+      throw new Error('Password must be at least 6 characters long');
+    }
+    if (!name || name.trim().length === 0) {
+      throw new Error('Please provide your full name');
+    }
 
-      setUser(mockUser);
-      setProfile(mockProfile);
-      sessionStorage.setItem('demo_user', JSON.stringify(mockUser));
-      sessionStorage.setItem('demo_profile', JSON.stringify(mockProfile));
-      toast.success('Demo account created successfully!');
+    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
+    if (!isFirebaseConfigured()) {
+      let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
+      try {
+        const saved = localStorage.getItem('tunmise_accounts');
+        if (saved) accounts = JSON.parse(saved);
+      } catch {
+        accounts = [];
+      }
+
+      if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
+        throw new Error('An account with this email already exists. Please sign in.');
+      }
+
+      const isOwner = email.toLowerCase().includes('admin') || 
+                      email.toLowerCase().includes('tunmise') ||
+                      email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
+      const role: 'admin' | 'customer' = isOwner ? 'admin' : 'customer';
+
+      const activeUser = {
+        uid: 'usr_' + Math.random().toString(36).substring(2, 10),
+        email,
+        displayName: name.trim(),
+      } as User;
+
+      const userProfile: UserProfile = {
+        uid: activeUser.uid,
+        email,
+        displayName: name.trim(),
+        role,
+        createdAt: new Date(),
+      };
+
+      accounts.push({ name: name.trim(), email, pass: password, role });
+      localStorage.setItem('tunmise_accounts', JSON.stringify(accounts));
+
+      setUser(activeUser);
+      setProfile(userProfile);
+      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
+      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+
+      toast.success(`Account created! Welcome, ${name.trim()}!`);
       return;
     }
 
@@ -118,52 +191,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await createUserProfile(cred.user.uid, { email, displayName: name, role: 'customer' });
   };
 
-  const loginWithGoogle = async () => {
-    // ─── Demo Mode Auth Bypass ───
+  const loginWithGoogle = async (customEmail?: string, customName?: string) => {
+    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
     if (!isFirebaseConfigured()) {
-      const mockUser = { uid: 'demo-google-uid', email: 'google-user@example.com' } as User;
-      const mockProfile = {
-        uid: 'demo-google-uid',
-        email: 'google-user@example.com',
-        displayName: 'Google Demo User',
-        role: 'customer',
-        createdAt: new Date(),
-      } as UserProfile;
+      const gEmail = customEmail || 'tunmisebeautyworld@gmail.com';
+      const gName = customName || 'Tunmise Aladire';
+      const isOwner = gEmail.toLowerCase().includes('admin') || 
+                      gEmail.toLowerCase().includes('tunmise') ||
+                      gEmail.toLowerCase() === 'tunmisebeautyworld@gmail.com';
 
-      setUser(mockUser);
-      setProfile(mockProfile);
-      sessionStorage.setItem('demo_user', JSON.stringify(mockUser));
-      sessionStorage.setItem('demo_profile', JSON.stringify(mockProfile));
-      toast.success('Logged in with Demo Google account!');
+      const activeUser = {
+        uid: 'google_' + Math.random().toString(36).substring(2, 10),
+        email: gEmail,
+        displayName: gName,
+      } as unknown as User;
+
+      const userProfile: UserProfile = {
+        uid: activeUser.uid,
+        email: gEmail,
+        displayName: gName,
+        role: isOwner ? 'admin' : 'customer',
+        createdAt: new Date(),
+      };
+
+      setUser(activeUser);
+      setProfile(userProfile);
+      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
+      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+
+      toast.success(`Signed in as ${gName}!`);
       return;
     }
 
     // ─── Production Firebase Auth ───
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     const cred = await signInWithPopup(auth, provider);
     const existing = await getUserProfile(cred.user.uid);
     if (!existing) {
+      const isOwner = (cred.user.email || '').toLowerCase() === 'tunmisebeautyworld@gmail.com';
       await createUserProfile(cred.user.uid, {
         email: cred.user.email || '',
-        displayName: cred.user.displayName || '',
-        role: 'customer',
+        displayName: cred.user.displayName || 'Customer',
+        role: isOwner ? 'admin' : 'customer',
       });
     }
   };
 
   const logout = async () => {
-    // ─── Demo Mode Auth Bypass ───
     if (!isFirebaseConfigured()) {
       setUser(null);
       setProfile(null);
-      sessionStorage.removeItem('demo_user');
-      sessionStorage.removeItem('demo_profile');
-      toast.success('Logged out successfully.');
+      localStorage.removeItem('tunmise_active_user');
+      localStorage.removeItem('tunmise_active_profile');
+      toast.success('Signed out successfully');
       return;
     }
 
-    // ─── Production Firebase Auth ───
     await signOut(auth);
+    setUser(null);
+    setProfile(null);
   };
 
   return (
