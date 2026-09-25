@@ -16,10 +16,6 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-100    text-red-800',
 };
 
-const statusIcons: Record<string, string> = {
-  pending: '⏳', confirmed: '✅', shipped: '🚚', delivered: '🎁', cancelled: '❌',
-};
-
 export default function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -87,7 +83,7 @@ export default function OrdersPage() {
                     </p>
                   </div>
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize flex items-center gap-1 ${statusColors[order.status] || 'bg-gray-100'}`}>
-                    {statusIcons[order.status]} {order.status}
+                    {order.status}
                   </span>
                 </div>
 

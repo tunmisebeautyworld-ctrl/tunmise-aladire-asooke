@@ -212,8 +212,8 @@ export default function ProductsContent() {
               <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-[#c2410c]/20 rounded-full blur-2xl" />
 
               <div className="relative z-10 max-w-xl mx-auto space-y-6">
-                <span className="inline-block bg-[#d97706] text-[#1e1b4b] text-[11px] font-extrabold uppercase px-4 py-1 rounded-full tracking-[0.2em] shadow-sm">
-                  ✦ Coming Soon ✦
+                <span className="inline-block bg-[#c2410c] text-white text-[11px] font-extrabold uppercase px-4 py-1 rounded-full tracking-[0.2em] shadow-sm">
+                  Coming Soon
                 </span>
 
                 <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-wide text-white">

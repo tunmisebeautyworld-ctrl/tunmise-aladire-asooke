@@ -414,7 +414,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                   {products.filter((p) => p.stock <= 5).length === 0 && (
-                    <p className="text-sm text-green-600 text-center py-6 font-medium">✓ All stock levels healthy.</p>
+                    <p className="text-sm text-green-600 text-center py-6 font-medium">All stock levels healthy.</p>
                   )}
                 </div>
               </div>
@@ -503,7 +503,7 @@ export default function AdminDashboard() {
 
                         <td className="px-6 py-4 text-center">
                           <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${p.featured ? 'bg-[#d97706]/15 text-[#d97706]' : 'text-gray-300'}`}>
-                            {p.featured ? '★ Featured' : 'No'}
+                            {p.featured ? 'Featured' : 'No'}
                           </span>
                         </td>
                         

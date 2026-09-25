@@ -78,7 +78,7 @@ export default function CheckoutPage() {
             paystackRef: response.reference,
           });
           clearCart();
-          toast.success('Order placed successfully! 🎉');
+          toast.success('Order placed successfully!');
           router.push('/orders');
         } catch {
           toast.error('Order save failed. Please contact support with ref: ' + response.reference);
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
             <h2 className="font-semibold text-brand-indigo mb-4">Delivery Information</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Tunmise Aladire', col: 1 },
+                { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Chioma Adeyemi', col: 1 },
                 { name: 'email', label: 'Email Address', type: 'email', placeholder: 'you@example.com', col: 1 },
                 { name: 'phone', label: 'Phone Number', type: 'tel', placeholder: '+234 800 000 0000', col: 1 },
                 { name: 'address', label: 'Street Address', type: 'text', placeholder: '12 Asooke Close, Victoria Island', col: 2 },
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
           </button>
 
           <p className="text-center text-xs text-brand-indigo/40">
-            🔒 Secured by Paystack. Your payment info is safe and encrypted.
+            Secured by Paystack. Your payment info is safe and encrypted.
           </p>
         </form>
 

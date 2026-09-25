@@ -44,7 +44,7 @@ export default function ContactPage() {
         type: 'general',
         status: 'unread',
       });
-      toast.success('Inquiry submitted successfully! We will get back to you soon. ✨');
+      toast.success('Inquiry submitted successfully! We will get back to you soon.');
       setForm({
         name: '',
         email: '',

@@ -472,7 +472,7 @@ export default function NewProductPage() {
                     <div className="border-t border-gray-100 pt-3 space-y-2">
                       <div className="flex justify-between items-center">
                         <p className="text-[10px] uppercase font-bold text-gray-400">
-                          📷 Mapped Images ({mappedImages.length})
+                          Mapped Images ({mappedImages.length})
                         </p>
                         <button
                           type="button"

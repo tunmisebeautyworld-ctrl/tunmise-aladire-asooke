@@ -93,10 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const displayName = existing ? existing.name : email.split('@')[0].replace(/[._]/g, ' ');
       const formattedName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-      const isOwner = email.toLowerCase().includes('admin') || 
-                      email.toLowerCase().includes('tunmise') ||
-                      email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
-      const role: 'admin' | 'customer' = existing?.role || (isOwner ? 'admin' : 'customer');
+      // Only designated store administrator email can have admin privileges
+      const isStoreAdmin = email.toLowerCase() === 'admin@tunmisealadire.com' ||
+                           email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
+      const role: 'admin' | 'customer' = existing?.role ? existing.role : (isStoreAdmin ? 'admin' : 'customer');
 
       const activeUser = {
         uid: 'usr_' + Math.random().toString(36).substring(2, 10),
@@ -155,10 +155,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('An account with this email already exists. Please sign in.');
       }
 
-      const isOwner = email.toLowerCase().includes('admin') || 
-                      email.toLowerCase().includes('tunmise') ||
-                      email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
-      const role: 'admin' | 'customer' = isOwner ? 'admin' : 'customer';
+      // Public signups are ALWAYS customer accounts
+      const role: 'admin' | 'customer' = 'customer';
 
       const activeUser = {
         uid: 'usr_' + Math.random().toString(36).substring(2, 10),
@@ -191,36 +189,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await createUserProfile(cred.user.uid, { email, displayName: name, role: 'customer' });
   };
 
-  const loginWithGoogle = async (customEmail?: string, customName?: string) => {
+  const loginWithGoogle = async () => {
     // ─── Local Persistent Auth (When Firebase is unconfigured) ───
     if (!isFirebaseConfigured()) {
-      const gEmail = customEmail || 'tunmisebeautyworld@gmail.com';
-      const gName = customName || 'Tunmise Aladire';
-      const isOwner = gEmail.toLowerCase().includes('admin') || 
-                      gEmail.toLowerCase().includes('tunmise') ||
-                      gEmail.toLowerCase() === 'tunmisebeautyworld@gmail.com';
-
-      const activeUser = {
-        uid: 'google_' + Math.random().toString(36).substring(2, 10),
-        email: gEmail,
-        displayName: gName,
-      } as unknown as User;
-
-      const userProfile: UserProfile = {
-        uid: activeUser.uid,
-        email: gEmail,
-        displayName: gName,
-        role: isOwner ? 'admin' : 'customer',
-        createdAt: new Date(),
-      };
-
-      setUser(activeUser);
-      setProfile(userProfile);
-      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
-      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
-
-      toast.success(`Signed in as ${gName}!`);
-      return;
+      throw new Error('Google sign-in requires Firebase authentication to be configured. Please sign in with email and password.');
     }
 
     // ─── Production Firebase Auth ───
@@ -229,11 +201,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cred = await signInWithPopup(auth, provider);
     const existing = await getUserProfile(cred.user.uid);
     if (!existing) {
-      const isOwner = (cred.user.email || '').toLowerCase() === 'tunmisebeautyworld@gmail.com';
       await createUserProfile(cred.user.uid, {
         email: cred.user.email || '',
         displayName: cred.user.displayName || 'Customer',
-        role: isOwner ? 'admin' : 'customer',
+        role: 'customer',
       });
     }
   };

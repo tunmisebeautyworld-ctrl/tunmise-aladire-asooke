@@ -254,7 +254,7 @@ export default function ProductDetailPage() {
 
               {showSizeGuide && (
                 <div className="mt-3 p-4 bg-white rounded-xl border border-brand-indigo/10 text-xs space-y-2 max-w-sm">
-                  <p className="font-semibold text-brand-indigo mb-1">📐 Size Conversion Chart</p>
+                  <p className="font-semibold text-brand-indigo mb-1">Size Conversion Chart</p>
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-brand-indigo/10 text-brand-indigo/50">
@@ -311,7 +311,7 @@ export default function ProductDetailPage() {
                 onClick={() => setShowBespokeModal(true)}
                 className="w-full bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer text-sm"
               >
-                📐 Submit Custom measurements
+                Submit Custom Measurements
               </button>
             )}
             <div className="flex gap-3">
@@ -334,7 +334,7 @@ export default function ProductDetailPage() {
 
           {/* Stock warning */}
           {product.stock > 0 && product.stock < 10 && (
-            <p className="text-brand-terracotta text-sm">⚠ Only {product.stock} left in stock</p>
+            <p className="text-brand-terracotta text-sm">Only {product.stock} pieces left in stock</p>
           )}
           {product.stock === 0 && (
             <p className="text-red-500 text-sm font-semibold">Out of Stock</p>

@@ -60,15 +60,15 @@ export default function Navbar() {
     <>
       {/* Main Navbar with Scroll Animation & Glassmorphism */}
       <nav
-        className={`sticky top-0 z-40 text-[#1e1b4b] transition-all duration-300 ${
+        className={`sticky top-0 z-40 text-[#18181b] transition-all duration-300 ${
           scrolled
-            ? 'bg-[#fefce8]/90 backdrop-blur-md shadow-md border-b border-[#d97706]/30'
-            : 'bg-[#fefce8] border-b border-[#1e1b4b]/10'
+            ? 'bg-[#faf8f5]/95 backdrop-blur-md shadow-sm border-b border-black/5'
+            : 'bg-[#faf8f5] border-b border-black/5'
         }`}
       >
-        {/* Animated Scroll Progress Bar */}
+        {/* Animated High-Visibility Scroll Progress Bar */}
         <div
-          className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-[#d97706] via-[#c2410c] to-[#1e1b4b] transition-all duration-100 ease-out"
+          className="absolute top-0 left-0 h-[3.5px] bg-gradient-to-r from-[#c2410c] to-[#ea580c] transition-all duration-100 ease-out z-50"
           style={{ width: `${scrollProgress}%` }}
         />
 
@@ -79,7 +79,7 @@ export default function Navbar() {
             <div className="flex-1 flex justify-start">
               <Link href="/" className="flex-shrink-0 focus:outline-none group">
                 <div>
-                  <span className="font-serif text-[#1e1b4b] text-base sm:text-lg font-bold leading-none block group-hover:text-[#c2410c] transition-colors">
+                  <span className="font-serif text-[#18181b] text-base sm:text-lg font-bold leading-none block group-hover:text-[#c2410c] transition-colors">
                     Tunmise Aladire
                   </span>
                   <span className="text-[10px] tracking-[0.25em] text-[#c2410c] uppercase font-semibold block mt-0.5">
@@ -95,11 +95,11 @@ export default function Navbar() {
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="text-xs sm:text-sm font-semibold tracking-wider text-[#1e1b4b]/80 hover:text-[#c2410c] transition-all uppercase inline-flex items-center gap-1.5"
+                  className="text-xs sm:text-sm font-semibold tracking-wider text-[#18181b]/80 hover:text-[#c2410c] transition-all uppercase inline-flex items-center gap-1.5"
                 >
                   <span>{l.label}</span>
                   {l.badge && (
-                    <span className="text-[9px] bg-[#d97706] text-[#1e1b4b] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-normal">
+                    <span className="text-[9px] bg-[#c2410c] text-white px-1.5 py-0.5 rounded-full font-bold uppercase tracking-normal">
                       {l.badge}
                     </span>
                   )}
@@ -113,7 +113,7 @@ export default function Navbar() {
               <Link 
                 href="/products" 
                 aria-label="Search items" 
-                className="text-[#1e1b4b]/80 hover:text-[#c2410c] transition-colors p-1"
+                className="text-[#18181b]/80 hover:text-[#c2410c] transition-colors p-1"
               >
                 <FiSearch size={19} />
               </Link>
@@ -122,7 +122,7 @@ export default function Navbar() {
               <button
                 onClick={() => setCartOpen(true)}
                 aria-label="Open shopping bag"
-                className="relative text-[#1e1b4b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
+                className="relative text-[#18181b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
               >
                 <FiShoppingCart size={19} />
                 {mounted && itemCount > 0 && (
@@ -137,7 +137,7 @@ export default function Navbar() {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   aria-label="User account"
-                  className="text-[#1e1b4b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
+                  className="text-[#18181b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
                 >
                   <FiUser size={19} />
                 </button>
@@ -194,7 +194,7 @@ export default function Navbar() {
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label="Toggle navigation menu"
-                className="md:hidden text-[#1e1b4b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
+                className="md:hidden text-[#18181b]/80 hover:text-[#c2410c] transition-colors p-1 cursor-pointer"
               >
                 {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
               </button>
@@ -204,18 +204,18 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Nav */}
         {menuOpen && (
-          <div className="md:hidden bg-[#fefce8] border-t border-[#d97706]/15 py-3">
+          <div className="md:hidden bg-[#faf8f5] border-t border-black/5 py-3">
             <div className="px-4 space-y-2">
               {navLinks.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="flex items-center justify-between text-[#1e1b4b]/85 hover:text-[#c2410c] py-2 font-semibold text-sm tracking-wide uppercase transition-colors"
+                  className="flex items-center justify-between text-[#18181b]/85 hover:text-[#c2410c] py-2 font-semibold text-sm tracking-wide uppercase transition-colors"
                   onClick={() => setMenuOpen(false)}
                 >
                   <span>{l.label}</span>
                   {l.badge && (
-                    <span className="text-[9px] bg-[#d97706] text-[#1e1b4b] px-2 py-0.5 rounded-full font-bold uppercase tracking-normal">
+                    <span className="text-[9px] bg-[#c2410c] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-normal">
                       {l.badge}
                     </span>
                   )}

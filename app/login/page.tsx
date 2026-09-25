@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,76 +34,41 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setLoading(true);
-    try {
-      await loginWithGoogle();
-      toast.success('Signed in with Google!');
-      router.push('/');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Google sign-in failed';
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#1e1b4b] relative overflow-hidden flex items-center justify-center px-4 py-12">
-      {/* Animated Ambient Luxury Lighting */}
-      <div className="w-80 h-80 rounded-full bg-[#d97706]/20 blur-3xl absolute -top-10 -left-10 animate-float pointer-events-none" />
-      <div className="w-96 h-96 rounded-full bg-[#c2410c]/20 blur-3xl absolute -bottom-10 -right-10 animate-pulse-glow pointer-events-none" />
-      <div className="absolute inset-0 tie-dye-bg opacity-30 pointer-events-none" />
+    <div className="min-h-screen bg-[#faf8f5] relative overflow-hidden flex items-center justify-center px-4 py-12">
+      {/* Subtle Editorial Ambient Glow */}
+      <div className="w-96 h-96 rounded-full bg-[#c2410c]/5 blur-3xl absolute -top-16 -left-16 pointer-events-none" />
+      <div className="w-96 h-96 rounded-full bg-black/5 blur-3xl absolute -bottom-16 -right-16 pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 animate-fade-in-up">
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block group">
-            <span className="text-[10px] tracking-[0.3em] text-[#d97706] uppercase font-bold block mb-1">
+            <span className="text-[10px] tracking-[0.3em] text-[#c2410c] uppercase font-bold block mb-1">
               Luxury Nigerian Fashion
             </span>
-            <h1 className="font-serif text-3xl sm:text-4xl text-[#fefce8] font-bold tracking-wider group-hover:text-[#d97706] transition-colors">
+            <h1 className="font-serif text-3xl sm:text-4xl text-[#18181b] font-bold tracking-wider group-hover:text-[#c2410c] transition-colors">
               Tunmise Aladire
             </h1>
-            <span className="text-xs tracking-[0.4em] text-white/50 uppercase block mt-0.5">
+            <span className="text-xs tracking-[0.4em] text-[#18181b]/50 uppercase block mt-0.5">
               Asooke
             </span>
           </Link>
         </div>
 
-        {/* Auth Glassmorphism Card */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-7 sm:p-9 border border-[#d97706]/25 relative overflow-hidden">
-          {/* Subtle top gold accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#d97706] via-[#c2410c] to-[#1e1b4b]" />
+        {/* Auth Editorial Card */}
+        <div className="bg-white rounded-3xl shadow-xl p-7 sm:p-9 border border-black/5 relative overflow-hidden">
+          {/* Subtle top terracotta accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c2410c] to-[#ea580c]" />
 
           <div className="text-center mb-7">
-            <h2 className="font-serif text-2xl font-bold text-[#1e1b4b]">Welcome Back</h2>
+            <h2 className="font-serif text-2xl font-bold text-[#18181b]">Welcome Back</h2>
             <p className="text-gray-500 mt-1 text-xs sm:text-sm">Sign in to your member account</p>
-          </div>
-
-          {/* Google Sign In Button */}
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-[#d97706] rounded-xl py-3.5 px-4 mb-6 text-sm font-semibold text-gray-700 transition-all shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50"
-          >
-            <FcGoogle size={22} className="flex-shrink-0" />
-            <span>Continue with Google</span>
-          </button>
-
-          <div className="relative text-center mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <span className="relative bg-white px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              or sign in with email
-            </span>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
@@ -114,16 +78,18 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. tunmisebeautyworld@gmail.com"
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50/80 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#d97706] focus:bg-white transition-all text-[#1e1b4b]"
+                  placeholder="e.g. name@example.com"
+                  className="w-full pl-11 pr-4 py-3.5 bg-[#faf8f5] border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all text-[#18181b] placeholder-gray-400"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                  Password
+                </label>
+              </div>
               <div className="relative">
                 <FiLock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -132,7 +98,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-11 pr-11 py-3 bg-gray-50/80 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#d97706] focus:bg-white transition-all text-[#1e1b4b]"
+                  className="w-full pl-11 pr-11 py-3.5 bg-[#faf8f5] border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all text-[#18181b] placeholder-gray-400"
                 />
                 <button
                   type="button"
@@ -148,7 +114,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1e1b4b] hover:bg-[#312e81] text-[#fefce8] font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-50 text-sm uppercase tracking-wider mt-2 flex items-center justify-center gap-2"
+              className="w-full bg-[#18181b] hover:bg-[#27272a] text-[#faf8f5] font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-50 text-xs sm:text-sm uppercase tracking-widest mt-2 flex items-center justify-center gap-2 btn-shimmer"
             >
               {loading ? (
                 <>
@@ -173,7 +139,7 @@ export default function LoginPage() {
 
         {/* Back to store navigation */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-xs text-white/70 hover:text-white transition-colors underline underline-offset-4">
+          <Link href="/" className="text-xs text-[#18181b]/60 hover:text-[#18181b] transition-colors underline underline-offset-4">
             ← Return to storefront
           </Link>
         </div>

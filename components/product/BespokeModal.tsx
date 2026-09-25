@@ -50,7 +50,7 @@ export default function BespokeModal({ isOpen, onClose, product }: Props) {
         },
         status: 'unread',
       });
-      toast.success('Measurements submitted! Our tailoring team will contact you shortly. 📏✨');
+      toast.success('Measurements submitted! Our tailoring team will contact you shortly.');
       setForm({
         name: '',
         email: '',
@@ -144,7 +144,7 @@ export default function BespokeModal({ isOpen, onClose, product }: Props) {
                   {/* Measurements sizes row */}
                   <div className="bg-[#1e1b4b]/5 p-4 rounded-2xl border border-[#1e1b4b]/5 space-y-3">
                     <p className="text-xs font-bold uppercase tracking-wider text-brand-terracotta">
-                      📐 Body Dimensions (inches / cm)
+                      Body Dimensions (inches / cm)
                     </p>
                     
                     <div className="grid grid-cols-2 gap-3">

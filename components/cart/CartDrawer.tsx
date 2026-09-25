@@ -150,9 +150,9 @@ export default function CartDrawer({ open, onClose }: Props) {
                         <Link
                           href="/checkout"
                           onClick={onClose}
-                          className="block w-full text-center bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 text-sm uppercase tracking-wider cursor-pointer"
+                          className="block w-full text-center bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 text-sm uppercase tracking-wider cursor-pointer btn-shimmer"
                         >
-                          💳 Proceed to Checkout & Pay
+                          Proceed to Checkout & Pay
                         </Link>
 
                         <button

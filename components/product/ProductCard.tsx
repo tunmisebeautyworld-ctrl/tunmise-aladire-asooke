@@ -20,11 +20,11 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   const categoryColors: Record<string, string> = {
-    asooke: 'bg-brand-indigo text-brand-cream',
-    adire: 'bg-brand-terracotta text-white',
-    bespoke: 'bg-brand-gold text-brand-indigo',
-    accessories: 'bg-green-700 text-white',
-    'beads-and-accessories': 'bg-[#d97706] text-[#1e1b4b]',
+    asooke: 'bg-[#18181b] text-white',
+    adire: 'bg-[#c2410c] text-white',
+    bespoke: 'bg-[#b45309] text-white',
+    accessories: 'bg-[#18181b] text-white',
+    'beads-and-accessories': 'bg-[#c2410c] text-white',
   };
 
   return (
