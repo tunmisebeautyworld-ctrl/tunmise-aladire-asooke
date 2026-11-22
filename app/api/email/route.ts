@@ -15,6 +15,9 @@ import {
   type BespokeData,
 } from '@/lib/emailTemplates';
 import type { Order } from '@/types';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { isFirebaseConfigured } from '@/lib/firestore';
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'orders@tunmisealadire.ng';
@@ -104,6 +107,20 @@ export async function POST(req: NextRequest) {
           subject: `New Paid Order #${order.id.toUpperCase()} - ₦${order.total.toLocaleString()} from ${order.customerInfo.name}`,
           htmlContent: adminHtml,
         });
+
+        // Server-side backup sync to Firestore so order ALWAYS appears in admin dashboard
+        try {
+          if (isFirebaseConfigured() && order.id) {
+            const cleanOrder = JSON.parse(JSON.stringify(order));
+            await setDoc(doc(db, 'orders', order.id), {
+              ...cleanOrder,
+              id: order.id,
+              createdAt: serverTimestamp(),
+            }, { merge: true });
+          }
+        } catch (syncErr) {
+          console.warn('[SERVER FIRESTORE ORDER SYNC ERROR]', syncErr);
+        }
 
         return NextResponse.json({ success: true, message: 'Order emails dispatched successfully' });
       }
@@ -265,6 +282,20 @@ export async function POST(req: NextRequest) {
           subject: `ACTION REQUIRED: Bank Transfer Payment Pending - Order #${order.id.toUpperCase()} (₦${amount.toLocaleString()}) from ${sender}`,
           htmlContent: adminHtml,
         });
+
+        // Server-side backup sync to Firestore so order ALWAYS appears in admin dashboard
+        try {
+          if (isFirebaseConfigured() && order.id) {
+            const cleanOrder = JSON.parse(JSON.stringify(order));
+            await setDoc(doc(db, 'orders', order.id), {
+              ...cleanOrder,
+              id: order.id,
+              createdAt: serverTimestamp(),
+            }, { merge: true });
+          }
+        } catch (syncErr) {
+          console.warn('[SERVER FIRESTORE ORDER SYNC ERROR]', syncErr);
+        }
 
         return NextResponse.json({ success: true, message: 'Bank transfer alert sent to admin' });
       }

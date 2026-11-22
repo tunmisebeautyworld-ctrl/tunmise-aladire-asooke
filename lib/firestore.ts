@@ -146,17 +146,20 @@ export async function deleteProduct(id: string): Promise<void> {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
-  let orderId = 'ORD-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+  const orderId = 'ORD-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+  // Strip all undefined properties so Firestore never rejects the payload
+  const cleanData = JSON.parse(JSON.stringify(data));
 
   if (isFirebaseConfigured()) {
     try {
-      const ref = await addDoc(collection(db, 'orders'), {
-        ...data,
+      await setDoc(doc(db, 'orders', orderId), {
+        ...cleanData,
+        id: orderId,
         createdAt: serverTimestamp(),
       });
-      orderId = ref.id;
     } catch (e) {
-      console.warn('Firebase order creation error, using fallback:', e);
+      console.error('Firebase order creation error:', e);
     }
   }
 
@@ -295,6 +298,21 @@ export async function getAllOrders(): Promise<Order[]> {
       dbOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (e) {
       console.warn('Firebase getAllOrders error:', e);
+    }
+  }
+
+  // If client-side query was empty or blocked by network, query server API
+  if (dbOrders.length === 0 && typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.orders) && json.orders.length > 0) {
+          dbOrders = json.orders;
+        }
+      }
+    } catch {
+      // ignore
     }
   }
 
