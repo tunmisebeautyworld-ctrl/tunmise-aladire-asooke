@@ -459,94 +459,102 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bank Account Settings: Official Transfer Account */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <FiCreditCard className="text-[#c2410c]" size={20} />
-                  <div>
-                    <h3 className="font-serif text-lg font-bold text-[#1e1b4b]">
-                      Store Bank Account Settings (Direct Transfer Checkout)
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Customers will see these exact account details on the checkout page when paying via bank transfer.
-                    </p>
-                  </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              {/* Section Header */}
+              <div className="px-6 py-4 bg-[#faf8f5] border-b border-gray-100 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#c2410c]/10 flex items-center justify-center flex-shrink-0">
+                  <FiCreditCard className="text-[#c2410c]" size={18} />
+                </div>
+                <div>
+                  <h3 className="font-serif text-base font-bold text-[#18181b]">Store Receiving Account</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">These details are shown to customers at checkout and in confirmation emails.</p>
                 </div>
               </div>
 
-              <form onSubmit={handleSaveBankDetails} className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
-                    Bank Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bankForm.bankName}
-                    onChange={(e) => setBankForm((b) => ({ ...b, bankName: e.target.value }))}
-                    placeholder="e.g. LOTUS BANK"
-                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
-                    Account Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bankForm.accountName}
-                    onChange={(e) => setBankForm((b) => ({ ...b, accountName: e.target.value }))}
-                    placeholder="e.g. TUNMISEALADIRE_ASOOKE"
-                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
-                    Account Number (NUBAN)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bankForm.accountNumber}
-                    onChange={(e) => setBankForm((b) => ({ ...b, accountNumber: e.target.value }))}
-                    placeholder="e.g. 1009183129"
-                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-mono font-bold"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
-                    Transfer Instructions (Displayed to customers)
-                  </label>
-                  <input
-                    type="text"
-                    value={bankForm.instructions || ''}
-                    onChange={(e) => setBankForm((b) => ({ ...b, instructions: e.target.value }))}
-                    placeholder="e.g. Please use your Full Name as narration. We confirm orders in under 5 minutes!"
-                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706]"
-                  />
-                </div>
-
-                <div className="flex items-end">
-                  <button
-                    type="submit"
-                    disabled={savingBank}
-                    className="w-full bg-[#1e1b4b] hover:bg-[#312e81] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {savingBank ? (
-                      <>
-                        <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save Bank Account Details'
+              <div className="p-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+                {/* Live Preview Card */}
+                <div className="lg:col-span-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Customer Preview</p>
+                  <div className="rounded-2xl bg-gradient-to-br from-[#18181b] to-[#312e81] p-5 text-white shadow-md">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-4">Transfer To This Account</p>
+                    <p className="font-mono text-3xl font-black tracking-wider text-white">{bankForm.accountNumber || '— — — — — — — —'}</p>
+                    <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-0.5">
+                      <p className="font-bold text-sm text-white">{bankForm.accountName || 'Account Name'}</p>
+                      <p className="text-xs text-white/60 font-semibold uppercase tracking-wide">{bankForm.bankName || 'Bank Name'}</p>
+                    </div>
+                    {bankForm.instructions && (
+                      <p className="mt-3 text-[10px] text-white/50 italic leading-relaxed">{bankForm.instructions}</p>
                     )}
-                  </button>
+                  </div>
                 </div>
-              </form>
+
+                {/* Edit Form */}
+                <form onSubmit={handleSaveBankDetails} className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Bank Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={bankForm.bankName}
+                      onChange={(e) => setBankForm((b) => ({ ...b, bankName: e.target.value }))}
+                      placeholder="e.g. LOTUS BANK"
+                      className="w-full text-sm p-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white font-semibold transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Account Number</label>
+                    <input
+                      type="text"
+                      required
+                      value={bankForm.accountNumber}
+                      onChange={(e) => setBankForm((b) => ({ ...b, accountNumber: e.target.value }))}
+                      placeholder="e.g. 1009183129"
+                      className="w-full text-sm p-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white font-mono font-bold tracking-widest transition-colors"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Account Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={bankForm.accountName}
+                      onChange={(e) => setBankForm((b) => ({ ...b, accountName: e.target.value }))}
+                      placeholder="e.g. TUNMISEALADIRE_ASOOKE"
+                      className="w-full text-sm p-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white font-semibold transition-colors"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Transfer Instructions (shown to customers)</label>
+                    <input
+                      type="text"
+                      value={bankForm.instructions || ''}
+                      onChange={(e) => setBankForm((b) => ({ ...b, instructions: e.target.value }))}
+                      placeholder="e.g. Use your Full Name as narration. We confirm in under 5 minutes."
+                      className="w-full text-sm p-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={savingBank}
+                      className="bg-[#18181b] hover:bg-[#312e81] text-white text-xs font-bold py-3 px-6 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {savingBank ? (
+                        <>
+                          <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Bank Account Details'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
 
             {/* Split Dashboard widgets */}
@@ -734,210 +742,239 @@ export default function AdminDashboard() {
 
         {/* ── Tab Content: Orders (Filters & Cards Layout) ── */}
         {tab === 'orders' && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Filters Row */}
-            <div className="flex justify-between items-center flex-wrap gap-4">
+          <div className="space-y-5 animate-fadeIn">
+            {/* Header Row */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-[#1e1b4b] font-serif">Customer Orders</h2>
-                <p className="text-xs text-gray-500">
-                  Update atelier status and dispatch notes. Updating an order automatically notifies the customer by email.
-                </p>
+                <h2 className="text-2xl font-serif font-bold text-[#18181b]">Customer Orders</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Status updates automatically email the customer.</p>
               </div>
-              <div className="flex flex-wrap gap-1 bg-[#1e1b4b]/5 p-1 rounded-xl">
+              {/* Filter Pills */}
+              <div className="flex flex-wrap gap-1.5">
                 {[
-                  { key: 'all', label: 'All Orders' },
-                  { key: 'pending', label: 'Pending' },
-                  { key: 'confirmed', label: 'Confirmed' },
-                  { key: 'in_production', label: 'In Production' },
-                  { key: 'shipped', label: 'Shipped' },
-                  { key: 'delivered', label: 'Delivered' },
-                  { key: 'cancelled', label: 'Cancelled' },
-                ].map(({ key, label }) => (
+                  { key: 'all', label: 'All', count: orders.length },
+                  { key: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'pending').length },
+                  { key: 'confirmed', label: 'Confirmed', count: orders.filter(o => o.status === 'confirmed').length },
+                  { key: 'in_production', label: 'In Production', count: orders.filter(o => o.status === 'in_production').length },
+                  { key: 'shipped', label: 'Shipped', count: orders.filter(o => o.status === 'shipped').length },
+                  { key: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered').length },
+                  { key: 'cancelled', label: 'Cancelled', count: orders.filter(o => o.status === 'cancelled').length },
+                ].map(({ key, label, count }) => (
                   <button
                     key={key}
                     onClick={() => setOrderFilter(key)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
                       orderFilter === key
-                        ? 'bg-white text-[#1e1b4b] shadow-sm'
-                        : 'text-gray-500 hover:text-[#1e1b4b]'
+                        ? 'bg-[#18181b] text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-[#18181b] hover:text-[#18181b]'
                     }`}
                   >
                     {label}
+                    {count > 0 && (
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${orderFilter === key ? 'bg-white/20' : 'bg-gray-100'}`}>
+                        {count}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Orders Feed */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               {filteredOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-5 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
                 >
-                  {/* Order Card Top Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                  {/* ── Card Header ── */}
+                  <div className={`px-5 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 ${
+                    order.status === 'pending' ? 'bg-amber-50/60' : 'bg-[#faf8f5]'
+                  }`}>
                     <div className="flex items-center gap-3 flex-wrap">
-                      <p className="font-mono text-xs text-[#1e1b4b] font-bold bg-gray-100 px-2.5 py-1 rounded-md">
-                        #{order.id.slice(0, 10).toUpperCase()}
-                      </p>
-                      <span className="text-xs text-gray-400">
-                        {new Date(order.createdAt).toLocaleString()}
+                      <span className="font-mono text-xs font-black text-[#18181b] bg-white border border-gray-200 px-2.5 py-1 rounded-lg">
+                        #{order.id.slice(0, 8).toUpperCase()}
                       </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(order.createdAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </span>
+                      {/* Payment method badge */}
                       {order.paymentMethod === 'bank_transfer' ? (
-                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 ${
                           order.status === 'pending'
                             ? 'bg-amber-100 text-amber-900 border border-amber-300'
                             : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                         }`}>
-                          <FiCreditCard size={11} />
-                          {order.status === 'pending' ? 'Bank Transfer (Awaiting Verification)' : 'Bank Transfer (Confirmed)'}
+                          <FiCreditCard size={10} />
+                          {order.status === 'pending' ? 'Bank Transfer — Awaiting Verification' : 'Bank Transfer — Verified'}
                         </span>
-                      ) : (
-                        order.paystackRef && (
-                          <span className="text-[11px] text-gray-400 font-mono">
-                            Ref: {order.paystackRef}
-                          </span>
-                        )
-                      )}
+                      ) : order.paystackRef ? (
+                        <span className="text-[10px] text-gray-400 font-mono bg-white border border-gray-200 px-2 py-0.5 rounded">
+                          Paystack: {order.paystackRef}
+                        </span>
+                      ) : null}
+                      {/* Status pill */}
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${STATUS_COLORS[order.status]}`}>
+                        {order.status.replace('_', ' ')}
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/track-order?orderId=${order.id}`}
-                        target="_blank"
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#c2410c] hover:bg-[#c2410c]/15 bg-[#c2410c]/10 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        <FiExternalLink size={13} /> View Live Tracker
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/track-order?orderId=${order.id}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#c2410c] hover:text-[#ea580c] transition-colors"
+                    >
+                      <FiExternalLink size={12} /> Track Order
+                    </Link>
                   </div>
 
-                  {/* Order Details Body */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Customer & Destination */}
-                    <div className="space-y-3">
+                  {/* ── Card Body ── */}
+                  <div className="p-5 grid grid-cols-1 md:grid-cols-5 gap-6">
+
+                    {/* Col 1-2: Customer Info */}
+                    <div className="md:col-span-2 space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Customer</p>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Customer & Delivery</p>
-                        <p className="font-bold text-sm text-[#1e1b4b] mt-0.5">{order.customerInfo?.name}</p>
-                        <p className="text-xs text-gray-600 font-medium">
-                          {order.customerInfo?.email}
-                        </p>
-                        <p className="text-xs text-gray-600 font-medium">
-                          {order.customerInfo?.phone}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 leading-relaxed bg-[#faf8f5] p-2.5 rounded-lg border border-[#f4efe6]">
-                          {order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state}
-                        </p>
+                        <p className="font-bold text-sm text-[#18181b]">{order.customerInfo?.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{order.customerInfo?.email}</p>
+                        <p className="text-xs text-gray-500">{order.customerInfo?.phone}</p>
+                      </div>
+                      <div className="bg-[#faf8f5] rounded-xl px-3 py-2 border border-black/5 text-xs text-gray-600 leading-relaxed">
+                        {order.customerInfo?.address},<br />
+                        {order.customerInfo?.city}, {order.customerInfo?.state}
                       </div>
 
-                      {/* Bank Transfer Details Box */}
+                      {/* Bank Transfer Proof (if applicable) */}
                       {order.paymentMethod === 'bank_transfer' && (
-                        <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 space-y-1.5 text-xs">
-                          <p className="font-bold text-[10px] uppercase tracking-wider text-amber-900 flex items-center gap-1">
-                            <FiCreditCard size={12} /> Bank Transfer Submitted
+                        <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-3 space-y-1.5 text-xs">
+                          <p className="font-black text-[10px] uppercase tracking-widest text-amber-800 flex items-center gap-1">
+                            <FiCreditCard size={11} /> Transfer Details Submitted
                           </p>
-                          <div className="space-y-1 text-[11px] text-gray-800">
-                            <p><span className="text-gray-500">Sender:</span> <strong>{order.paymentDetails?.senderName || order.customerInfo?.name}</strong></p>
-                            <p><span className="text-gray-500">Amount Paid:</span> <strong className="text-[#c2410c]">₦{(order.paymentDetails?.amountPaid || order.total).toLocaleString()}</strong></p>
-                            <p><span className="text-gray-500">Bank Used:</span> <strong>{order.paymentDetails?.senderBank || 'Direct Transfer'}</strong></p>
-                            {order.paymentDetails?.transferReference && (
-                              <p><span className="text-gray-500">Ref / Remark:</span> <code className="font-mono">{order.paymentDetails.transferReference}</code></p>
-                            )}
-                            {order.paymentDetails?.paymentNotes && (
-                              <p className="italic text-gray-600 text-[10px]">&ldquo;{order.paymentDetails.paymentNotes}&rdquo;</p>
+                          <div className="space-y-1 text-[11px]">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Sender</span>
+                              <strong className="text-[#18181b]">{order.paymentDetails?.senderName || order.customerInfo?.name}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Amount</span>
+                              <strong className="text-[#c2410c]">₦{(order.paymentDetails?.amountPaid || order.total).toLocaleString()}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Bank</span>
+                              <strong className="text-[#18181b]">{order.paymentDetails?.senderBank || 'Direct Transfer'}</strong>
+                            </div>
+                            {(order.paymentDetails?.transferReference) && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Ref</span>
+                                <code className="font-mono text-[#18181b]">{order.paymentDetails.transferReference}</code>
+                              </div>
                             )}
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Purchased Items List */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Items Ordered</p>
-                      <ul className="text-xs space-y-2 divide-y divide-gray-50">
+                    {/* Col 3: Items Ordered */}
+                    <div className="md:col-span-2 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Items Ordered</p>
+                      <div className="divide-y divide-gray-100">
                         {order.items.map((item, i) => (
-                          <li key={i} className="pt-1.5 first:pt-0">
-                            <p className="font-semibold text-[#1e1b4b]">{item.product.name}</p>
-                            <p className="text-[11px] text-gray-500">
-                              Qty: <span className="font-bold text-[#1e1b4b]">{item.quantity}</span> &bull; Size: {item.selectedSize} &bull; Color: {item.selectedColor.split('|')[0]}
-                            </p>
-                            <p className="text-[11px] font-bold text-[#c2410c]">
-                              ₦{(item.product.price * item.quantity).toLocaleString()}
-                            </p>
-                          </li>
+                          <div key={i} className="py-2.5 first:pt-0">
+                            <div className="flex items-start gap-2.5">
+                              {/* Product Image */}
+                              <div className="w-10 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                                {item.product.images?.[0] ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-[#18181b] to-[#c2410c]" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                {/* Clickable product name that links to the product page */}
+                                <Link
+                                  href={`/products/${item.product.id}`}
+                                  target="_blank"
+                                  className="font-semibold text-xs text-[#18181b] hover:text-[#c2410c] transition-colors flex items-center gap-1 group"
+                                >
+                                  <span className="truncate">{item.product.name}</span>
+                                  <FiExternalLink size={10} className="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
+                                </Link>
+                                <p className="text-[11px] text-gray-500 mt-0.5">
+                                  Qty: <strong className="text-[#18181b]">{item.quantity}</strong>
+                                  {' '}&bull; Size: <strong className="text-[#18181b]">{item.selectedSize}</strong>
+                                  {' '}&bull; Colour: <strong className="text-[#18181b]">{item.selectedColor.split('|')[0]}</strong>
+                                </p>
+                                <p className="text-xs font-bold text-[#c2410c] mt-0.5">
+                                  ₦{(item.product.price * item.quantity).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
-                      <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs">
-                        <span className="font-semibold text-gray-500">Total Paid:</span>
-                        <span className="font-extrabold text-base text-[#c2410c]">
-                          ₦{order.total.toLocaleString()}
-                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
+                        <span className="text-xs text-gray-500 font-semibold">Order Total</span>
+                        <span className="font-black text-sm text-[#c2410c]">₦{order.total.toLocaleString()}</span>
                       </div>
                     </div>
 
-                    {/* Status Management & Delivery Notes */}
-                    <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200/60 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        {/* 1-Click Bank Payment Confirmation Button */}
-                        {order.status === 'pending' && (
-                          <button
-                            type="button"
-                            disabled={updatingOrderId === order.id}
-                            onClick={() => handleConfirmBankPayment(order)}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
-                          >
-                            {updatingOrderId === order.id ? (
-                              <>
-                                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
-                                Confirming & Sending Receipt...
-                              </>
-                            ) : (
-                              <>
-                                <FiCheckCircle size={14} /> Confirm Payment & Dispatch Receipt
-                              </>
-                            )}
-                          </button>
-                        )}
+                    {/* Col 5: Status Controls */}
+                    <div className="md:col-span-1 flex flex-col gap-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Actions</p>
 
-                        <label className="block text-[11px] uppercase font-bold text-gray-500 tracking-wider">
-                          Order Status (Notifies Customer)
+                      {/* 1-Click Confirm Bank Payment */}
+                      {order.status === 'pending' && (
+                        <button
+                          type="button"
+                          disabled={updatingOrderId === order.id}
+                          onClick={() => handleConfirmBankPayment(order)}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                        >
+                          {updatingOrderId === order.id ? (
+                            <>
+                              <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                              Confirming...
+                            </>
+                          ) : (
+                            <>
+                              <FiCheckCircle size={13} /> Confirm Payment
+                            </>
+                          )}
+                        </button>
+                      )}
+
+                      {/* Status Dropdown */}
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">
+                          Update Status
                         </label>
                         <select
                           value={order.status}
                           disabled={updatingOrderId === order.id}
-                          onChange={(e) =>
-                            handleStatusChange(order.id, e.target.value as Order['status'])
-                          }
-                          className={`w-full text-xs px-3 py-2 rounded-xl font-bold uppercase border focus:ring-1 focus:ring-[#d97706] cursor-pointer ${STATUS_COLORS[order.status]}`}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
+                          className={`w-full text-xs px-3 py-2 rounded-xl font-bold border focus:outline-none focus:ring-1 focus:ring-[#d97706] cursor-pointer ${STATUS_COLORS[order.status]}`}
                         >
                           {STATUS_OPTIONS.map((s) => (
-                            <option key={s} value={s}>
-                              {s.replace('_', ' ')}
-                            </option>
+                            <option key={s} value={s}>{s.replace('_', ' ')}</option>
                           ))}
                         </select>
-
-                        <div className="pt-1">
-                          <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">
-                            Courier / Rider Notes:
-                          </label>
-                          <textarea
-                            rows={2}
-                            placeholder="e.g. Courier: GIG Logistics #GIG-29182. Delivery rider scheduled for tomorrow."
-                            value={
-                              orderNotes[order.id] !== undefined
-                                ? orderNotes[order.id]
-                                : order.deliveryNotes || ''
-                            }
-                            onChange={(e) =>
-                              setOrderNotes((prev) => ({ ...prev, [order.id]: e.target.value }))
-                            }
-                            className="w-full text-xs p-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#d97706] resize-none"
-                          />
-                        </div>
                       </div>
 
+                      {/* Courier Notes */}
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">
+                          Courier Notes
+                        </label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. GIG Logistics #29182"
+                          value={orderNotes[order.id] !== undefined ? orderNotes[order.id] : order.deliveryNotes || ''}
+                          onChange={(e) => setOrderNotes((prev) => ({ ...prev, [order.id]: e.target.value }))}
+                          className="w-full text-xs p-2 bg-[#faf8f5] border border-gray-200 rounded-lg focus:outline-none focus:border-[#d97706] resize-none"
+                        />
+                      </div>
+
+                      {/* Update Button */}
                       <button
                         type="button"
                         disabled={updatingOrderId === order.id}
@@ -945,21 +982,19 @@ export default function AdminDashboard() {
                           handleStatusChange(
                             order.id,
                             order.status,
-                            orderNotes[order.id] !== undefined
-                              ? orderNotes[order.id]
-                              : order.deliveryNotes || ''
+                            orderNotes[order.id] !== undefined ? orderNotes[order.id] : order.deliveryNotes || ''
                           )
                         }
-                        className="w-full bg-[#1e1b4b] hover:bg-[#312e81] text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                        className="w-full bg-[#18181b] hover:bg-[#312e81] text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                       >
                         {updatingOrderId === order.id ? (
                           <>
                             <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
-                            Updating & Notifying...
+                            Saving...
                           </>
                         ) : (
                           <>
-                            <FiTruck size={13} /> Update Status & Send Email
+                            <FiTruck size={12} /> Save & Notify
                           </>
                         )}
                       </button>
@@ -969,8 +1004,9 @@ export default function AdminDashboard() {
               ))}
 
               {filteredOrders.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-2xl border">
-                  <p className="text-gray-400">No orders found matching this filter.</p>
+                <div className="text-center py-24 bg-white rounded-2xl border border-gray-100">
+                  <FiPackage size={36} className="mx-auto text-gray-300 mb-3" />
+                  <p className="text-sm font-semibold text-gray-400">No orders matching this filter</p>
                 </div>
               )}
             </div>
