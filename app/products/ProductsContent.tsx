@@ -135,8 +135,34 @@ export default function ProductsContent() {
         )}
       </div>
 
-      {/* Top Bar: Clean Collection Pills + Filter Toggle Button */}
-      <div className="flex items-center justify-between gap-3 pb-4 mb-6 border-b border-gray-100 overflow-x-auto no-scrollbar">
+      {/* Top Bar: Filter Button (FIRST) + Clean Collection Pills */}
+      <div className="flex items-center gap-2.5 pb-4 mb-6 border-b border-gray-100 overflow-x-auto no-scrollbar">
+        {/* Filter Toggle Button (FIRST so it is immediately visible and not hidden at the end) */}
+        <div className="flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((prev) => !prev)}
+            className={`text-xs sm:text-sm px-4 py-2 rounded-full transition-all inline-flex items-center gap-2 font-semibold cursor-pointer border active:scale-95 ${
+              filtersOpen || activeFiltersCount > 0
+                ? 'bg-[#c2410c] text-white border-[#c2410c] shadow-sm'
+                : 'bg-white text-[#18181b] border-gray-300 hover:border-[#18181b]'
+            }`}
+            aria-expanded={filtersOpen}
+            aria-label="Toggle filters"
+          >
+            <FiSliders size={13} />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="bg-white text-[#c2410c] text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-gray-200 flex-shrink-0" />
+
         {/* Collection Pills (clean, no numbers) */}
         <div className="flex items-center gap-2 flex-nowrap sm:flex-wrap">
           {CATEGORIES.map((c) => {
@@ -160,27 +186,6 @@ export default function ProductsContent() {
               </button>
             );
           })}
-        </div>
-
-        {/* Filter Toggle Button (Not open by default, opens only on click) */}
-        <div className="flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((prev) => !prev)}
-            className={`flex-shrink-0 text-xs sm:text-sm px-4 py-2 rounded-full transition-all inline-flex items-center gap-2 font-semibold cursor-pointer border active:scale-95 ${
-              filtersOpen || activeFiltersCount > 0
-                ? 'bg-[#c2410c] text-white border-[#c2410c] shadow-sm'
-                : 'bg-white text-[#18181b] border-gray-200 hover:border-[#18181b]'
-            }`}
-          >
-            <FiSliders size={13} />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <span className="bg-white text-[#c2410c] text-[10px] font-black px-1.5 py-0.2 rounded-full">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
         </div>
       </div>
 
