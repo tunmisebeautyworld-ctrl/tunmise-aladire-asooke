@@ -21,7 +21,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success('Welcome back!');
-      if (email.toLowerCase().includes('admin')) {
+      if (email.trim().toLowerCase() === 'tunmisebeautyworld@gmail.com') {
         router.push('/admin');
       } else {
         router.push('/');
@@ -89,6 +89,12 @@ export default function LoginPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
                   Password
                 </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[#c2410c] hover:underline font-semibold"
+                >
+                  Forgot Password?
+                </Link>
               </div>
               <div className="relative">
                 <FiLock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />

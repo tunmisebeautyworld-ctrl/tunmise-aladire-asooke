@@ -27,7 +27,7 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
               <Transition.Child
                 as={Fragment}
                 enter="transform transition ease-in-out duration-300"
@@ -35,41 +35,49 @@ export default function CartDrawer({ open, onClose }: Props) {
                 leave="transform transition ease-in-out duration-300"
                 leaveFrom="translate-x-0" leaveTo="translate-x-full"
               >
-                <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                  <div className="flex h-full flex-col bg-[#fefce8] border-l border-[#1e1b4b]/10 shadow-2xl text-[#1e1b4b]">
+                <Dialog.Panel className="pointer-events-auto w-screen max-w-full sm:max-w-md">
+                  <div className="flex h-full flex-col bg-[#faf8f5] shadow-2xl text-[#18181b]">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-5 bg-[#1e1b4b] text-[#fefce8]">
-                      <Dialog.Title className="font-serif text-xl font-bold tracking-wide text-[#d97706]">
-                        Your Shopping Bag
-                      </Dialog.Title>
+                    <div className="flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 bg-[#18181b] text-white border-b border-white/10">
+                      <div>
+                        <Dialog.Title className="font-serif text-lg sm:text-xl font-bold tracking-wide text-white">
+                          Your Shopping Bag
+                        </Dialog.Title>
+                        <p className="text-[11px] text-[#fefce8]/60 mt-0.5">
+                          {items.length} {items.length === 1 ? 'item' : 'items'} in bag
+                        </p>
+                      </div>
                       <button 
                         onClick={onClose} 
                         aria-label="Close cart" 
-                        className="text-[#fefce8]/80 hover:text-[#d97706] transition-colors p-1"
+                        className="text-white/70 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
                       >
-                        <FiX size={24} />
+                        <FiX size={22} />
                       </button>
                     </div>
 
                     {/* Items */}
-                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
                       {items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                          <FiShoppingCart size={64} className="text-[#1e1b4b]/20 mb-4" />
-                          <p className="text-[#1e1b4b]/50 text-lg font-medium">Your bag is empty</p>
+                          <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center mb-4">
+                            <FiShoppingCart size={32} className="text-[#18181b]/30" />
+                          </div>
+                          <p className="text-[#18181b] text-base font-bold">Your bag is empty</p>
+                          <p className="text-gray-400 text-xs mt-1 max-w-xs">Explore our handcrafted Asooke collection to add pieces</p>
                           <button
                             onClick={onClose}
-                            className="mt-4 text-[#d97706] hover:text-[#f59e0b] font-bold underline"
+                            className="mt-5 px-6 py-2.5 rounded-full bg-[#18181b] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#312e81] transition-all cursor-pointer"
                           >
-                            Continue Shopping
+                            Explore Collection
                           </button>
                         </div>
                       ) : (
-                        <ul className="space-y-4">
+                        <ul className="space-y-3">
                           {items.map((item, idx) => (
-                            <li key={idx} className="flex gap-4 p-4 bg-white rounded-2xl shadow-sm border border-[#1e1b4b]/5">
+                            <li key={idx} className="flex gap-3 sm:gap-4 p-3.5 sm:p-4 bg-white rounded-2xl shadow-sm border border-black/5">
                               {/* Product Image Thumbnail */}
-                              <div className="w-20 h-24 bg-[#1e1b4b]/5 rounded-xl flex-shrink-0 overflow-hidden relative border border-[#1e1b4b]/5">
+                              <div className="w-20 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative border border-gray-200">
                                 {item.product.images?.[0] ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img
@@ -78,51 +86,51 @@ export default function CartDrawer({ open, onClose }: Props) {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-[#1e1b4b] to-[#c2410c] tie-dye-bg opacity-40" />
+                                  <div className="w-full h-full bg-gradient-to-br from-[#18181b] to-[#c2410c]" />
                                 )}
                               </div>
 
                               {/* Product Info */}
                               <div className="flex-1 min-w-0 flex flex-col justify-between">
                                 <div>
-                                  <h4 className="font-semibold text-[#1e1b4b] text-sm leading-tight truncate">{item.product.name}</h4>
-                                  <p className="text-xs text-[#1e1b4b]/60 mt-1 font-medium">
-                                    Size: {item.selectedSize} &middot; {item.selectedColor}
+                                  <div className="flex items-start justify-between gap-1">
+                                    <h4 className="font-bold text-[#18181b] text-sm leading-snug line-clamp-2">{item.product.name}</h4>
+                                    <button
+                                      aria-label="Remove item"
+                                      onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor)}
+                                      className="text-gray-300 hover:text-red-500 p-1 transition-colors flex-shrink-0 cursor-pointer"
+                                    >
+                                      <FiTrash2 size={15} />
+                                    </button>
+                                  </div>
+                                  <p className="text-[11px] text-gray-500 mt-1">
+                                    Size: <strong className="text-[#18181b]">{item.selectedSize}</strong> &bull; {item.selectedColor.split('|')[0]}
                                   </p>
                                 </div>
                                 
-                                <div className="flex items-center justify-between mt-2">
-                                  <div className="flex items-center gap-2 border border-[#1e1b4b]/15 rounded-lg overflow-hidden bg-[#fefce8]/50">
+                                <div className="flex items-center justify-between mt-3 gap-2">
+                                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-[#faf8f5]">
                                     <button
                                       aria-label="Decrease quantity"
                                       onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1)}
-                                      className="px-2.5 py-1 text-[#1e1b4b]/70 hover:bg-[#1e1b4b]/5 hover:text-[#1e1b4b] transition-colors"
+                                      className="px-2.5 py-1.5 text-gray-600 hover:bg-black/5 transition-colors cursor-pointer"
                                     >
                                       <FiMinus size={11} />
                                     </button>
-                                    <span className="text-xs font-semibold w-5 text-center">{item.quantity}</span>
+                                    <span className="text-xs font-bold w-6 text-center text-[#18181b]">{item.quantity}</span>
                                     <button
                                       aria-label="Increase quantity"
                                       onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity + 1)}
-                                      className="px-2.5 py-1 text-[#1e1b4b]/70 hover:bg-[#1e1b4b]/5 hover:text-[#1e1b4b] transition-colors"
+                                      className="px-2.5 py-1.5 text-gray-600 hover:bg-black/5 transition-colors cursor-pointer"
                                     >
                                       <FiPlus size={11} />
                                     </button>
                                   </div>
-                                  <p className="text-[#c2410c] font-bold text-sm">
+                                  <p className="text-[#c2410c] font-black text-sm whitespace-nowrap">
                                     ₦{(item.product.price * item.quantity).toLocaleString()}
                                   </p>
                                 </div>
                               </div>
-
-                              {/* Remove Button */}
-                              <button
-                                aria-label="Remove item"
-                                onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor)}
-                                className="text-[#1e1b4b]/30 hover:text-[#c2410c] self-start p-1 transition-colors"
-                              >
-                                <FiTrash2 size={16} />
-                              </button>
                             </li>
                           ))}
                         </ul>
@@ -131,35 +139,35 @@ export default function CartDrawer({ open, onClose }: Props) {
 
                     {/* Footer */}
                     {items.length > 0 && (
-                      <div className="border-t border-[#1e1b4b]/10 bg-white px-6 py-6 space-y-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-sm text-[#1e1b4b]/75">
+                      <div className="border-t border-black/5 bg-white px-5 sm:px-6 py-5 space-y-3.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                        <div className="space-y-1.5 text-xs sm:text-sm">
+                          <div className="flex justify-between text-gray-600">
                             <span>Subtotal</span>
-                            <span className="font-medium">₦{total().toLocaleString()}</span>
+                            <span className="font-semibold text-[#18181b]">₦{total().toLocaleString()}</span>
                           </div>
-                          <div className="flex justify-between text-sm text-[#1e1b4b]/75">
-                            <span>Shipping</span>
-                            <span className="text-[#c2410c] font-medium">Calculated at checkout</span>
+                          <div className="flex justify-between text-gray-600">
+                            <span>Delivery</span>
+                            <span className="text-[#c2410c] font-semibold">Calculated at checkout</span>
                           </div>
-                          <div className="flex justify-between font-bold text-base text-[#1e1b4b] pt-2.5 border-t border-[#1e1b4b]/5">
-                            <span>Total (Est.)</span>
-                            <span className="text-[#c2410c] text-lg">₦{total().toLocaleString()}</span>
+                          <div className="flex justify-between font-bold text-base text-[#18181b] pt-2 border-t border-gray-100">
+                            <span>Total</span>
+                            <span className="text-[#c2410c] font-black text-lg">₦{total().toLocaleString()}</span>
                           </div>
                         </div>
 
                         <Link
                           href="/checkout"
                           onClick={onClose}
-                          className="block w-full text-center bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 text-sm uppercase tracking-wider cursor-pointer btn-shimmer"
+                          className="block w-full text-center bg-[#c2410c] hover:bg-[#ea580c] text-white font-bold py-3.5 sm:py-4 rounded-xl transition-all shadow-md active:scale-[0.98] text-xs sm:text-sm uppercase tracking-widest cursor-pointer"
                         >
-                          Proceed to Checkout & Pay
+                          Proceed to Checkout
                         </Link>
 
                         <button
                           onClick={clearCart}
-                          className="block w-full text-center text-[#1e1b4b]/40 hover:text-[#c2410c] text-xs font-semibold uppercase tracking-wider transition-colors pt-1 cursor-pointer"
+                          className="block w-full text-center text-gray-400 hover:text-red-500 text-[11px] font-semibold uppercase tracking-wider transition-colors pt-0.5 cursor-pointer"
                         >
-                          Empty Shopping Bag
+                          Clear Bag
                         </button>
                       </div>
                     )}

@@ -399,6 +399,41 @@ export function getOtpVerificationHtml(name: string, otp: string): string {
   return baseEmailWrapper('Your Tunmise Verification Code', content);
 }
 
+// ─── 5b. Password Reset OTP Email ─────────────────────────────────────────────
+
+export function getPasswordResetOtpHtml(otp: string): string {
+  const content = `
+    <div style="text-align: center; margin-bottom: 28px;">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #c2410c; background-color: rgba(194, 65, 12, 0.08); padding: 5px 12px; border-radius: 20px; display: inline-block;">
+        Security Notice
+      </span>
+      <h1 style="font-family: Georgia, serif; font-size: 26px; color: #18181b; margin: 14px 0 6px 0;">Reset Your Password</h1>
+      <p style="margin: 0; font-size: 14px; color: #71717a;">
+        We received a request to reset your password for your Tunmise Aladire Asooke account. Use the one-time code below to proceed.
+      </p>
+    </div>
+
+    <!-- OTP Code Display Card -->
+    <div style="text-align: center; background-color: #faf8f5; border: 1px solid #f4efe6; border-radius: 14px; padding: 26px 20px; margin: 26px 0;">
+      <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #71717a;">
+        Password Reset Code
+      </p>
+      <div style="font-family: monospace; font-size: 36px; font-weight: 700; letter-spacing: 0.3em; color: #c2410c;">
+        ${otp}
+      </div>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #a1a1aa;">
+        This code is valid for 10 minutes. Never share this code with anyone.
+      </p>
+    </div>
+
+    <p style="font-size: 12px; color: #71717a; text-align: center; line-height: 1.5; margin: 0;">
+      If you did not request a password reset, please ignore this email or contact our atelier immediately.
+    </p>
+  `;
+
+  return baseEmailWrapper('Reset Your Tunmise Password', content);
+}
+
 // ─── 6. Customer Contact Inquiry Confirmation & Admin Alert ───────────────────
 
 export function getContactCustomerReceiptHtml(name: string, subject: string, message: string): string {

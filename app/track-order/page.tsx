@@ -194,25 +194,24 @@ function OrderTrackerContent() {
         {order && (
           <div className="space-y-8 animate-fadeIn">
             {/* Top Order Overview Banner */}
-            <div className="bg-gradient-to-r from-[#18181b] to-[#27272a] text-white rounded-3xl p-6 sm:p-8 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div className="bg-gradient-to-r from-[#18181b] to-[#27272a] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-6">
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#d97706] block mb-1">
                     Order Tracking Status
                   </span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight">
+                  <h2 className="font-serif text-xl sm:text-3xl font-bold tracking-tight">
                     Order #{order.id.slice(0, 10).toUpperCase()}
                   </h2>
                   <p className="text-xs text-white/60 mt-1">
                     Placed on {new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })} &bull;{' '}
-                    {order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Paystack'}:{' '}
-                    <span className="font-mono text-white/80">{order.paymentDetails?.transferReference || order.paymentDetails?.paymentReference || order.paystackRef || 'Verified'}</span>
+                    {order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Paystack'}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 self-start sm:self-auto">
                   <span
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap ${
                       order.status === 'delivered'
                         ? 'bg-emerald-500 text-white'
                         : order.status === 'shipped'
@@ -237,9 +236,9 @@ function OrderTrackerContent() {
                   This order has been marked as cancelled. Please reach out to customer care if you have questions.
                 </div>
               ) : (
-                <div className="pt-8">
+                <div className="pt-6 sm:pt-8">
                   <div className="relative">
-                    {/* Connecting Bar */}
+                    {/* Connecting Bar (Desktop) */}
                     <div className="hidden sm:block absolute top-5 left-8 right-8 h-1 bg-white/20 -z-0">
                       <div
                         className="h-full bg-gradient-to-r from-[#d97706] to-[#c2410c] transition-all duration-700"
@@ -250,16 +249,16 @@ function OrderTrackerContent() {
                     </div>
 
                     {/* Step Nodes */}
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 sm:gap-2 relative z-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5 sm:gap-2 relative z-10">
                       {STAGES.map((stage, idx) => {
                         const isDone = currentStageIdx > idx + 1;
                         const isCurrent = currentStageIdx === idx + 1;
 
                         return (
-                          <div key={stage.key} className="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-2">
+                          <div key={stage.key} className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-2">
                             {/* Circle Indicator */}
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all flex-shrink-0 ${
+                              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all flex-shrink-0 ${
                                 isDone
                                   ? 'bg-[#c2410c] text-white shadow-md'
                                   : isCurrent
@@ -267,11 +266,11 @@ function OrderTrackerContent() {
                                   : 'bg-white/10 text-white/40 border border-white/10'
                               }`}
                             >
-                              {isDone ? <FiCheck size={16} /> : idx + 1}
+                              {isDone ? <FiCheck size={14} /> : idx + 1}
                             </div>
 
                             {/* Label */}
-                            <div className="sm:space-y-0.5">
+                            <div className="sm:space-y-0.5 min-w-0">
                               <p
                                 className={`text-xs font-bold leading-tight ${
                                   isDone || isCurrent ? 'text-white' : 'text-white/40'
@@ -294,33 +293,33 @@ function OrderTrackerContent() {
 
             {/* Pending Payment Verification Notice Banner */}
             {order.status === 'pending' && (
-              <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-7 space-y-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl sm:rounded-3xl p-4 sm:p-7 space-y-3">
                 <div className="flex items-center gap-2 text-amber-900">
-                  <FiClock size={20} className="text-[#d97706]" />
-                  <h3 className="font-serif text-lg font-bold">
+                  <FiClock size={18} className="text-[#d97706] flex-shrink-0" />
+                  <h3 className="font-serif text-base sm:text-lg font-bold">
                     Payment Verification in Progress
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
-                  Thank you for submitting your transfer details. Our accounts team is verifying your payment with the bank. Once confirmed, your official order receipt will be sent to <span className="font-bold">{order.customerInfo.email}</span> and your garments will be queued for atelier cutting.
+                  Thank you for submitting your transfer details. Our accounts team verifies all transfers within 5 minutes. Once confirmed, your official order receipt will be sent to <span className="font-bold text-[#18181b]">{order.customerInfo.email}</span> and your garments will be queued for atelier cutting.
                 </p>
                 {order.paymentDetails && (
-                  <div className="bg-white/90 rounded-2xl p-4 border border-amber-200/60 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-amber-200/60 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
                     <div>
-                      <span className="text-gray-500 block text-[11px]">Sender Name</span>
-                      <span className="font-bold text-gray-900">{order.paymentDetails.senderName}</span>
+                      <span className="text-gray-500 block text-[10px] sm:text-[11px]">Sender Name</span>
+                      <span className="font-bold text-gray-900 truncate block">{order.paymentDetails.senderName}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block text-[11px]">Amount Paid</span>
-                      <span className="font-bold text-[#c2410c]">₦{order.paymentDetails.amountPaid?.toLocaleString()}</span>
+                      <span className="text-gray-500 block text-[10px] sm:text-[11px]">Amount Paid</span>
+                      <span className="font-black text-[#c2410c]">₦{order.paymentDetails.amountPaid?.toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block text-[11px]">Sending Bank</span>
-                      <span className="font-bold text-gray-900">{order.paymentDetails.senderBank}</span>
+                      <span className="text-gray-500 block text-[10px] sm:text-[11px]">Sending Bank</span>
+                      <span className="font-bold text-gray-900 truncate block">{order.paymentDetails.senderBank}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block text-[11px]">Payment Reference</span>
-                      <span className="font-mono font-bold text-gray-900">{order.paymentDetails.transferReference || order.paymentDetails.paymentReference || 'N/A'}</span>
+                      <span className="text-gray-500 block text-[10px] sm:text-[11px]">Payment Reference</span>
+                      <span className="font-mono font-bold text-gray-900 truncate block">{order.paymentDetails.transferReference || order.paymentDetails.paymentReference || 'N/A'}</span>
                     </div>
                   </div>
                 )}
@@ -343,9 +342,9 @@ function OrderTrackerContent() {
             )}
 
             {/* Order Details & Delivery Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
               {/* Delivery Destination */}
-              <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-black/5 space-y-4">
+              <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-black/5 space-y-4">
                 <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
                   <FiMapPin className="text-[#c2410c]" size={18} />
                   <h3 className="font-serif text-base font-bold">Delivery Address</h3>
@@ -369,7 +368,7 @@ function OrderTrackerContent() {
               </div>
 
               {/* Garments Ordered */}
-              <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-black/5 md:col-span-2 space-y-4">
+              <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-black/5 md:col-span-2 space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                   <div className="flex items-center gap-2">
                     <FiPackage className="text-[#c2410c]" size={18} />
@@ -382,8 +381,8 @@ function OrderTrackerContent() {
 
                 <div className="divide-y divide-gray-100 space-y-3">
                   {order.items.map((item, idx) => (
-                    <div key={idx} className="pt-3 first:pt-0 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
+                    <div key={idx} className="pt-3 first:pt-0 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="w-12 h-14 bg-[#faf8f5] rounded-xl overflow-hidden border border-black/5 flex-shrink-0">
                           {item.product.images?.[0] ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -398,18 +397,18 @@ function OrderTrackerContent() {
                             </div>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-sm text-[#18181b] truncate">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-xs sm:text-sm text-[#18181b] truncate">
                             {item.product.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-[11px] text-gray-500 mt-0.5 truncate">
                             Size: <span className="font-bold text-gray-700">{item.selectedSize}</span> &bull; Color: <span className="font-bold text-gray-700">{item.selectedColor.split('|')[0]}</span> &bull; Qty: {item.quantity}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right flex-shrink-0">
-                        <span className="font-bold text-sm text-[#c2410c]">
+                        <span className="font-black text-xs sm:text-sm text-[#c2410c] whitespace-nowrap">
                           ₦{(item.product.price * item.quantity).toLocaleString()}
                         </span>
                       </div>
@@ -418,11 +417,11 @@ function OrderTrackerContent() {
                 </div>
 
                 {/* Subtotal & Total */}
-                <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-sm">
-                  <span className="font-semibold text-gray-500">
+                <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+                  <span className="font-semibold text-gray-500 text-xs sm:text-sm">
                     {order.paymentMethod === 'bank_transfer' ? 'Total Payable (Bank Transfer):' : 'Total Paid (Paystack):'}
                   </span>
-                  <span className="font-extrabold text-xl text-[#c2410c]">
+                  <span className="font-extrabold text-lg sm:text-xl text-[#c2410c]">
                     ₦{order.total.toLocaleString()}
                   </span>
                 </div>

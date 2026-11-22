@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { FiMail, FiLock, FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function SignupPage() {
@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -24,8 +25,8 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(email, password, name);
-      toast.success('Welcome to Tunmise Aladire Asooke!');
-      router.push('/');
+      toast.success('Account created! Please verify your email.');
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Signup failed';
       toast.error(msg);
@@ -108,13 +109,21 @@ export default function SignupPage() {
               <div className="relative">
                 <FiLock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPw ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full pl-11 pr-4 py-3.5 bg-[#faf8f5] border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all text-[#18181b] placeholder-gray-400"
+                  className="w-full pl-11 pr-11 py-3.5 bg-[#faf8f5] border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all text-[#18181b] placeholder-gray-400"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  {showPw ? <FiEyeOff size={17} /> : <FiEye size={17} />}
+                </button>
               </div>
             </div>
 

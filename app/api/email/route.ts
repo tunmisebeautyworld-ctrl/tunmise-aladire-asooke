@@ -11,6 +11,7 @@ import {
   getOrderStatusUpdateHtml,
   getAdminBankTransferAlertHtml,
   getBankTransferCustomerAckHtml,
+  getPasswordResetOtpHtml,
   type BespokeData,
 } from '@/lib/emailTemplates';
 import type { Order } from '@/types';
@@ -180,6 +181,24 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: 'Verification OTP sent' });
+      }
+
+      // ─── 4b. Forgot Password OTP Verification ───
+      case 'forgot_password': {
+        const { email, otp } = body;
+        if (!email || !otp) {
+          return NextResponse.json({ error: 'Missing email or OTP code' }, { status: 400 });
+        }
+
+        const resetHtml = getPasswordResetOtpHtml(otp);
+        await sendBrevoEmail({
+          toEmail: email,
+          toName: 'Valued Client',
+          subject: `${otp} is your password reset code - Tunmise Aladire Asooke`,
+          htmlContent: resetHtml,
+        });
+
+        return NextResponse.json({ success: true, message: 'Password reset code sent' });
       }
 
       // ─── 5. Beads & Accessories VIP Priority Waitlist ───

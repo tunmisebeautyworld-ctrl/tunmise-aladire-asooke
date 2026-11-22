@@ -147,6 +147,13 @@ export default function Navbar() {
                     {user ? (
                       <>
                         <Link
+                          href="/profile"
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-semibold transition-colors"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          My Profile
+                        </Link>
+                        <Link
                           href="/orders"
                           className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           onClick={() => setUserMenuOpen(false)}

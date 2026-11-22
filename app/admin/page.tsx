@@ -337,101 +337,114 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-[#1e1b4b]">
-      {/* Admin Header */}
-      <div className="bg-[#1e1b4b] text-[#fefce8] px-6 py-5 flex items-center justify-between border-b border-[#d97706]/20 shadow-md">
+    <div className="min-h-screen bg-gray-50 text-[#18181b]">
+      {/* Admin Header - Sticky, mobile-optimized */}
+      <div className="bg-[#18181b] text-[#fefce8] px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between border-b border-white/10 shadow-sm sticky top-0 z-30">
         <div>
-          <h1 className="font-serif text-2xl font-bold tracking-wide text-[#d97706]">
-            Admin Dashboard
-          </h1>
-          <p className="text-xs text-[#fefce8]/60 uppercase tracking-widest mt-0.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <h1 className="font-serif text-lg sm:text-2xl font-bold tracking-wide text-white">
+              Admin Atelier
+            </h1>
+          </div>
+          <p className="text-[10px] sm:text-xs text-[#fefce8]/60 uppercase tracking-widest mt-0.5">
             Tunmise Aladire Asooke
           </p>
         </div>
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm text-[#fefce8]/70 hover:text-[#d97706] transition-colors"
+          className="flex items-center gap-1.5 text-xs sm:text-sm text-[#fefce8]/80 hover:text-[#d97706] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
         >
-          <FiArrowLeft size={16} /> Back to Storefront
+          <FiArrowLeft size={14} /> <span>Storefront</span>
         </Link>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-1 mb-8 border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Navigation Tabs - Horizontally scrollable touch pills on mobile */}
+        <div className="flex gap-2 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-none border-b border-gray-200">
           {(['overview', 'products', 'orders', 'communications'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-5 py-3.5 text-sm font-bold capitalize border-b-2 transition-all -mb-px cursor-pointer ${
+              className={`px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold capitalize transition-all cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-2 ${
                 tab === t
-                  ? 'border-[#d97706] text-[#d97706]'
-                  : 'border-transparent text-gray-500 hover:text-[#1e1b4b]'
+                  ? 'bg-[#18181b] text-white shadow-sm'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
               }`}
             >
-              {t === 'communications' ? `Communications (${unreadMsgCount})` : t}
+              <span>{t}</span>
+              {t === 'orders' && orders.filter(o => o.status === 'pending').length > 0 && (
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-400 text-[#18181b]">
+                  {orders.filter(o => o.status === 'pending').length}
+                </span>
+              )}
+              {t === 'communications' && unreadMsgCount > 0 && (
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#c2410c] text-white">
+                  {unreadMsgCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
         {/* ── Tab Content: Overview ── */}
         {tab === 'overview' && (
-          <div className="space-y-8 animate-fadeIn">
+          <div className="space-y-6 sm:space-y-8 animate-fadeIn">
             {/* Stat Cards Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
               <StatCard
-                icon={<FiDollarSign size={22} />}
+                icon={<FiDollarSign size={20} />}
                 label="Total Revenue"
                 value={`₦${totalRevenue.toLocaleString()}`}
                 color="bg-emerald-600 text-white"
               />
               <StatCard
-                icon={<FiShoppingBag size={22} />}
+                icon={<FiShoppingBag size={20} />}
                 label="Active Orders"
                 value={activeOrdersCount.toString()}
                 color="bg-[#c2410c] text-white"
               />
               <StatCard
-                icon={<FiPackage size={22} />}
+                icon={<FiPackage size={20} />}
                 label="Total Products"
                 value={products.length.toString()}
-                color="bg-[#1e1b4b] text-white"
+                color="bg-[#18181b] text-white"
               />
               <StatCard
-                icon={<FiAlertTriangle size={22} />}
-                label="Low Stock Items"
+                icon={<FiAlertTriangle size={20} />}
+                label="Low Stock"
                 value={lowStockCount.toString()}
                 color={lowStockCount > 0 ? 'bg-amber-500 text-white animate-pulse' : 'bg-gray-400 text-white'}
               />
               <StatCard
-                icon={<FiMessageSquare size={22} />}
-                label="Unread Messages"
+                icon={<FiMessageSquare size={20} />}
+                label="Messages"
                 value={unreadMsgCount.toString()}
                 color={unreadMsgCount > 0 ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'}
               />
             </div>
 
             {/* Category Launch Controls: Beads & Accessories */}
-            <div className="bg-gradient-to-r from-[#1e1b4b] to-[#312e81] text-white rounded-2xl p-6 shadow-md border border-[#d97706]/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="bg-gradient-to-r from-[#18181b] to-[#312e81] text-white rounded-2xl p-4 sm:p-6 shadow-md border border-[#d97706]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
               <div className="space-y-1.5 max-w-xl">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="font-serif text-lg font-bold text-[#d97706]">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-serif text-base sm:text-lg font-bold text-[#d97706]">
                     Category Launch Control: Beads & Accessories
                   </h3>
                   <span
-                    className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider ${
+                    className={`text-[10px] sm:text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider ${
                       settings.beadsAccessoriesStatus === 'active'
-                        ? 'bg-emerald-500 text-white shadow-xs'
-                        : 'bg-amber-400 text-[#1e1b4b] shadow-xs'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-amber-400 text-[#18181b]'
                     }`}
                   >
-                    {settings.beadsAccessoriesStatus === 'active' ? 'Live & Open' : 'Coming Soon (Locked)'}
+                    {settings.beadsAccessoriesStatus === 'active' ? 'Live & Open' : 'Coming Soon'}
                   </span>
                 </div>
                 <p className="text-xs text-white/80 leading-relaxed">
                   {settings.beadsAccessoriesStatus === 'active'
-                    ? 'The Beads & Accessories collection is currently OPEN to all customers. Shoppers can view and purchase accessories from the catalog.'
-                    : 'The collection is currently LOCKED in Coming Soon mode. Customers clicking on &ldquo;Beads & Accessories&rdquo; will see the exclusive Coming Soon showcase with launch notification signup.'}
+                    ? 'The Beads & Accessories collection is OPEN to all customers.'
+                    : 'The collection is LOCKED in Coming Soon mode with waitlist signup.'}
                 </p>
               </div>
 
@@ -439,10 +452,10 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={handleToggleBeadsStatus}
                 disabled={updatingSettings}
-                className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer flex-shrink-0 disabled:opacity-50 ${
+                className={`w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer flex-shrink-0 disabled:opacity-50 ${
                   settings.beadsAccessoriesStatus === 'active'
                     ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                    : 'bg-[#d97706] hover:bg-[#f59e0b] text-[#1e1b4b]'
+                    : 'bg-[#d97706] hover:bg-[#f59e0b] text-[#18181b]'
                 }`}
               >
                 {updatingSettings ? (
@@ -453,7 +466,7 @@ export default function AdminDashboard() {
                 ) : settings.beadsAccessoriesStatus === 'active' ? (
                   'Revert to Coming Soon'
                 ) : (
-                  'Open Category to Public (Launch Now)'
+                  'Open to Public (Launch Now)'
                 )}
               </button>
             </div>
@@ -622,24 +635,95 @@ export default function AdminDashboard() {
 
         {/* ── Tab Content: Products & Inventory (Quick Stock Editor) ── */}
         {tab === 'products' && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="flex justify-between items-center mb-4">
+          <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2 sm:mb-4">
               <div>
-                <h2 className="text-xl font-bold text-[#1e1b4b] font-serif">Products Catalog</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#18181b] font-serif">Products Catalog</h2>
                 <p className="text-xs text-gray-500">Track listings, pricing, and make quick stock adjustments</p>
               </div>
               <Link
                 href="/admin/products/new"
-                className="flex items-center gap-2 bg-[#1e1b4b] hover:bg-[#312e81] text-white px-5 py-3 rounded-xl text-sm font-bold shadow-sm transition-all"
+                className="flex items-center justify-center gap-2 bg-[#18181b] hover:bg-[#312e81] text-white px-5 py-3 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all"
               >
                 <FiPlus size={16} /> Add New Product
               </Link>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Mobile View: Product Cards (shown on mobile, hidden on tablet/desktop) */}
+            <div className="block md:hidden space-y-3">
+              {products.map((p) => (
+                <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-14 h-16 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 relative flex-shrink-0">
+                      {p.images?.[0] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#18181b] to-[#c2410c]" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <Link href={`/products/${p.id}`} target="_blank" className="font-bold text-sm text-[#18181b] hover:text-[#c2410c] line-clamp-1">
+                          {p.name}
+                        </Link>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase flex-shrink-0 ${p.featured ? 'bg-[#d97706]/15 text-[#d97706]' : 'bg-gray-100 text-gray-400'}`}>
+                          {p.featured ? 'Featured' : 'Regular'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 capitalize mt-0.5">
+                        {p.category === 'beads-and-accessories' ? 'Beads & Accessories' : p.category}
+                      </p>
+                      <p className="text-xs font-black text-[#c2410c] mt-1">₦{p.price.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Mobile Stock + Action Controls */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 gap-2">
+                    <div className="flex items-center gap-1.5 bg-[#faf8f5] p-1 rounded-xl border border-gray-200">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 px-1">Stock:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustStock(p.id, p.stock - 1)}
+                        className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-[#18181b] active:scale-95 transition-transform"
+                      >
+                        <FiMinus size={12} />
+                      </button>
+                      <span className="w-8 text-center font-bold text-xs">{p.stock}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustStock(p.id, p.stock + 1)}
+                        className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-[#18181b] active:scale-95 transition-transform"
+                      >
+                        <FiPlus size={12} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/products/${p.id}/edit`}
+                        className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:text-[#18181b] text-xs font-bold flex items-center gap-1"
+                      >
+                        <FiEdit size={13} /> Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteProduct(p.id, p.name)}
+                        className="p-2 rounded-lg text-red-500 hover:bg-red-50 text-xs transition-colors"
+                        title="Delete Listing"
+                      >
+                        <FiTrash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Product Table (hidden on mobile, visible on md+) */}
+            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-[#1e1b4b]/5 text-[#1e1b4b]/60 uppercase text-xs tracking-wider">
+                  <thead className="bg-[#18181b]/5 text-[#18181b]/60 uppercase text-xs tracking-wider">
                     <tr>
                       <th className="px-6 py-4">Item details</th>
                       <th className="px-6 py-4">Category</th>
@@ -652,14 +736,14 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-gray-100">
                     {products.map((p) => (
                       <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 font-semibold text-[#1e1b4b]">
+                        <td className="px-6 py-4 font-semibold text-[#18181b]">
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-14 bg-gray-100 rounded-lg overflow-hidden border relative flex-shrink-0">
                               {p.images?.[0] ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#1e1b4b] to-[#c2410c]" />
+                                <div className="w-full h-full bg-gradient-to-br from-[#18181b] to-[#c2410c]" />
                               )}
                             </div>
                             <div className="min-w-0">
@@ -679,7 +763,7 @@ export default function AdminDashboard() {
                             <button
                               type="button"
                               onClick={() => handleAdjustStock(p.id, p.stock - 1)}
-                              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-[#1e1b4b] hover:border-[#c2410c] hover:text-[#c2410c] transition-colors cursor-pointer"
+                              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-[#18181b] hover:border-[#c2410c] hover:text-[#c2410c] transition-colors cursor-pointer"
                             >
                               <FiMinus size={13} />
                             </button>
@@ -692,7 +776,7 @@ export default function AdminDashboard() {
                             <button
                               type="button"
                               onClick={() => handleAdjustStock(p.id, p.stock + 1)}
-                              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-[#1e1b4b] hover:border-[#c2410c] hover:text-[#c2410c] transition-colors cursor-pointer"
+                              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-[#18181b] hover:border-[#c2410c] hover:text-[#c2410c] transition-colors cursor-pointer"
                             >
                               <FiPlus size={13} />
                             </button>
@@ -727,16 +811,17 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
-                {products.length === 0 && (
-                  <div className="text-center py-20 bg-white">
-                    <p className="text-gray-400">No products found in the catalog.</p>
-                    <Link href="/admin/products/new" className="mt-3 inline-block text-[#d97706] hover:underline font-bold text-sm">
-                      Create First Product &rarr;
-                    </Link>
-                  </div>
-                )}
               </div>
             </div>
+
+            {products.length === 0 && (
+              <div className="text-center py-20 bg-white rounded-2xl border">
+                <p className="text-gray-400">No products found in the catalog.</p>
+                <Link href="/admin/products/new" className="mt-3 inline-block text-[#d97706] hover:underline font-bold text-sm">
+                  Create First Product &rarr;
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -1221,11 +1306,13 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-      <div className={`${color} p-3 rounded-xl flex items-center justify-center`}>{icon}</div>
-      <div className="min-w-0">
-        <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider truncate">{label}</p>
-        <p className="text-xl font-bold text-[#1e1b4b] mt-0.5 truncate">{value}</p>
+    <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-gray-100 flex items-center gap-2.5 sm:gap-4">
+      <div className={`${color} p-2 sm:p-3 rounded-xl flex items-center justify-center flex-shrink-0 text-sm sm:text-base`}>
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider truncate">{label}</p>
+        <p className="text-sm sm:text-xl font-bold text-[#18181b] mt-0.5 truncate">{value}</p>
       </div>
     </div>
   );
