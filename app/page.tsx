@@ -39,10 +39,11 @@ export default async function HomePage() {
     },
     {
       name: 'Beads & Accessories',
-      description: 'Royal coral beads & adornments',
+      description: 'Royal coral beads & ceremonial adornments',
       href: '/products?category=beads-and-accessories',
       image: '/images/yellow_green_wrap.jpg',
       badge: 'Coming Soon',
+      isBlurred: true,
     },
   ];
 
@@ -156,38 +157,80 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 max-w-5xl mx-auto">
             {categories.map((cat, idx) => (
               <ScrollReveal key={cat.name} delay={idx * 100} direction="up">
-                <Link
-                  href={cat.href}
-                  className="group relative block rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] luxury-card-hover shadow-sm"
-                >
-                  {/* Category Photo with zoom on hover */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                  />
-                  {/* Dark gradient overlay for legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+                {cat.isBlurred ? (
+                  <Link
+                    href={cat.href}
+                    className="group relative block rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] border border-white/20 shadow-xl transition-all duration-500 hover:scale-[1.02] hover:border-[#d97706]/60 cursor-pointer"
+                  >
+                    {/* Blurred background photo */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover object-center filter blur-xl scale-125 opacity-30 group-hover:scale-135 transition-transform duration-700"
+                    />
+                    {/* Deep luxury frosted glass overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b]/90 via-black/80 to-[#7c2d12]/75 backdrop-blur-xl" />
 
-                  {/* Text Content */}
-                  <div className="relative z-10 p-6 sm:p-7 h-full flex flex-col justify-between text-white">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-wide">{cat.name}</h3>
-                      {cat.badge && (
-                        <span className="bg-[#c2410c] text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider shadow-sm">
-                          {cat.badge}
+                    {/* Subtle decorative inner border */}
+                    <div className="absolute inset-2.5 rounded-xl border border-white/10 group-hover:border-[#d97706]/40 transition-colors pointer-events-none" />
+
+                    {/* Content */}
+                    <div className="relative z-10 p-6 sm:p-7 h-full flex flex-col justify-between text-white">
+                      <div>
+                        <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-[#d97706]/40 text-[#fef08a] text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-widest shadow-sm mb-3">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#d97706] animate-pulse" />
+                          Atelier Vault &bull; Coming Soon
                         </span>
-                      )}
-                    </div>
-                    <div className="flex items-end justify-between mt-4">
-                      <p className="text-xs text-white/80 max-w-[200px] leading-relaxed">{cat.description}</p>
-                      <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center group-hover:bg-[#c2410c] group-hover:text-white transition-all">
-                        <FiArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-wide text-white drop-shadow-sm">
+                          {cat.name}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-end justify-between mt-4">
+                        <p className="text-xs text-white/80 max-w-[210px] leading-relaxed font-sans">
+                          {cat.description}
+                        </p>
+                        <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white group-hover:bg-[#d97706] group-hover:border-[#d97706] group-hover:text-[#1e1b4b] transition-all shadow-sm">
+                          <FiArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                ) : (
+                  <Link
+                    href={cat.href}
+                    className="group relative block rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] luxury-card-hover shadow-sm"
+                  >
+                    {/* Category Photo with zoom on hover */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    />
+                    {/* Dark gradient overlay for legibility */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+
+                    {/* Text Content */}
+                    <div className="relative z-10 p-6 sm:p-7 h-full flex flex-col justify-between text-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-wide">{cat.name}</h3>
+                        {cat.badge && (
+                          <span className="bg-[#c2410c] text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider shadow-sm">
+                            {cat.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-end justify-between mt-4">
+                        <p className="text-xs text-white/80 max-w-[200px] leading-relaxed">{cat.description}</p>
+                        <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center group-hover:bg-[#c2410c] group-hover:text-white transition-all">
+                          <FiArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                )}
               </ScrollReveal>
             ))}
           </div>

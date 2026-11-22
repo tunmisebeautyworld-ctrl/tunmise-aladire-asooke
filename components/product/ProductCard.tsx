@@ -10,6 +10,8 @@ import toast from 'react-hot-toast';
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [liked, setLiked] = useState(false);
+  const [activeImgIdx, setActiveImgIdx] = useState(0);
+  const images = product.images && product.images.length > 0 ? product.images : [];
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,15 +34,36 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 flex flex-col h-full border border-gray-100/80">
         {/* Image */}
         <div className="relative aspect-[3/4] w-full bg-gradient-to-br from-brand-indigo/10 to-brand-terracotta/10 overflow-hidden flex-shrink-0">
-          {product.images?.[0] ? (
+          {images[activeImgIdx] || images[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={product.images[0]}
+              src={images[activeImgIdx] || images[0]}
               alt={product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-brand-indigo to-brand-terracotta opacity-30 tie-dye-bg" />
+          )}
+
+          {/* Dots Indicator for multiple photos */}
+          {images.length > 1 && (
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveImgIdx(idx);
+                  }}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    activeImgIdx === idx ? 'w-3.5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
+                  }`}
+                  aria-label={`View photo ${idx + 1}`}
+                />
+              ))}
+            </div>
           )}
 
           {/* Category badge */}
