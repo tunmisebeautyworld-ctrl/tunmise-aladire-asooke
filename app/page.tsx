@@ -19,6 +19,11 @@ export default async function HomePage() {
     featured = DEMO_PRODUCTS.filter((p) => p.featured);
   }
 
+  // Ensure balanced number of cards across mobile (2-col) and desktop (4-col)
+  // Multiples of 4 (e.g. 4 or 8) ensure complete rows without lonely orphaned cards
+  const balancedLimit = featured.length >= 8 ? 8 : featured.length >= 4 ? 4 : Math.floor(featured.length / 2) * 2;
+  const displayFeatured = featured.slice(0, balancedLimit);
+
   const categories = [
     {
       name: 'Asooke',
@@ -103,7 +108,7 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Products - FRONT AND CENTER FIRST */}
-      {featured.length > 0 && (
+      {displayFeatured.length > 0 && (
         <section id="featured-pieces" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 scroll-mt-20">
           <ScrollReveal direction="up">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
@@ -127,7 +132,7 @@ export default async function HomePage() {
           </ScrollReveal>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6 items-stretch">
-            {featured.slice(0, 8).map((p, idx) => (
+            {displayFeatured.map((p, idx) => (
               <ScrollReveal key={p.id} delay={idx * 60} direction="up" className="h-full">
                 <ProductCard product={p} />
               </ScrollReveal>

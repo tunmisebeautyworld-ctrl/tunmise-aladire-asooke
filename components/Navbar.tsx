@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { getStoreSettings } from '@/lib/firestore';
@@ -20,6 +21,48 @@ export default function Navbar() {
   const [beadsStatus, setBeadsStatus] = useState<'coming_soon' | 'active'>('coming_soon');
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+
+  const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on route navigation
+  useEffect(() => {
+    setMenuOpen(false);
+    setUserMenuOpen(false);
+  }, [pathname]);
+
+  // Click outside to dismiss mobile menu and user profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (menuOpen && navRef.current && !navRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (menuOpen || userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    }
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen, userMenuOpen]);
 
   useEffect(() => {
     getStoreSettings().then((s) => setBeadsStatus(s.beadsAccessoriesStatus));
@@ -61,6 +104,7 @@ export default function Navbar() {
     <>
       {/* Main Navbar with Scroll Animation & Glassmorphism */}
       <nav
+        ref={navRef}
         className={`sticky top-0 z-40 text-[#18181b] transition-all duration-300 ${
           scrolled
             ? 'bg-[#faf8f5]/95 backdrop-blur-md shadow-sm border-b border-black/5'
@@ -134,7 +178,7 @@ export default function Navbar() {
               </button>
 
               {/* User Account */}
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   aria-label="User account"
@@ -226,7 +270,7 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Nav */}
         {menuOpen && (
-          <div className="md:hidden bg-[#faf8f5] border-t border-black/5 py-3">
+          <div className="md:hidden bg-[#faf8f5] border-t border-black/5 py-3 shadow-xl">
             <div className="px-4 space-y-2">
               {navLinks.map((l) => (
                 <Link
@@ -247,6 +291,15 @@ export default function Navbar() {
           </div>
         )}
       </nav>
+
+      {/* Mobile Drawer Backdrop Overlay */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 md:hidden animate-fadeIn"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </>
