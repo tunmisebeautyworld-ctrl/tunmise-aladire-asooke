@@ -817,7 +817,7 @@ export function getBankTransferCustomerAckHtml(order: Order): string {
         Our atelier finance team is currently cross-referencing your transfer of <strong>&#8358;${(p.amountPaid || order.total).toLocaleString()}</strong>${p.senderBank ? ` from <strong>${p.senderBank}</strong>` : ''}.
       </p>
       <p style="margin: 0; font-size: 13px; color: #52525b; line-height: 1.6;">
-        Once confirmed (typically within 15–30 minutes during business hours), you will automatically receive an <strong>official itemized receipt</strong>, and your garments will immediately enter our atelier cutting queue.
+        We confirm orders in under 5 minutes. Once confirmed, you will automatically receive an <strong>official itemized receipt</strong>, and your garments will immediately enter our atelier cutting queue.
       </p>
     </div>
 

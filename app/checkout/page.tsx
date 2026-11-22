@@ -13,9 +13,11 @@ import {
   FiCheck,
   FiShield,
   FiArrowRight,
+  FiArrowLeft,
   FiInfo,
   FiCreditCard,
   FiCheckCircle,
+  FiClock,
 } from 'react-icons/fi';
 
 const NIGERIAN_STATES = [
@@ -27,8 +29,10 @@ const NIGERIAN_STATES = [
 ];
 
 const POPULAR_BANKS = [
+  'Lotus Bank',
   'Moniepoint MFB',
   'OPay',
+  'Palmpay',
   'GTBank (Guaranty Trust Bank)',
   'Access Bank',
   'Zenith Bank',
@@ -38,7 +42,6 @@ const POPULAR_BANKS = [
   'Stanbic IBTC Bank',
   'Sterling Bank',
   'Fidelity Bank',
-  'Palmpay',
   'Wema / ALAT',
   'Other Bank',
 ];
@@ -47,6 +50,9 @@ export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+
+  // Wizard Step State: 1 = Delivery, 2 = Bank Transfer Details, 3 = Confirmation Form
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
   const [loading, setLoading] = useState(false);
   const [bankDetails, setBankDetails] = useState<BankDetails>(DEFAULT_BANK_DETAILS);
@@ -70,7 +76,6 @@ export default function CheckoutPage() {
   const [otherBank, setOtherBank] = useState('');
   const [transferReference, setTransferReference] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
-  const [showPaidSection, setShowPaidSection] = useState(false);
 
   useEffect(() => {
     getStoreSettings().then((s) => {
@@ -114,6 +119,35 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleProceedToStep2 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (items.length === 0) {
+      toast.error('Your bag is empty');
+      return;
+    }
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.phone.trim() ||
+      !form.address.trim() ||
+      !form.city.trim() ||
+      !form.state.trim()
+    ) {
+      toast.error('Please fill in all delivery details to continue');
+      return;
+    }
+    if (!senderName) {
+      setSenderName(form.name);
+    }
+    setCurrentStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleProceedToStep3 = () => {
+    setCurrentStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -123,8 +157,16 @@ export default function CheckoutPage() {
     }
 
     // Validate delivery fields
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim() || !form.state.trim()) {
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.phone.trim() ||
+      !form.address.trim() ||
+      !form.city.trim() ||
+      !form.state.trim()
+    ) {
       toast.error('Please fill out all delivery information fields');
+      setCurrentStep(1);
       return;
     }
 
@@ -142,6 +184,10 @@ export default function CheckoutPage() {
     }
 
     const finalBank = senderBank === 'Other Bank' ? otherBank.trim() : senderBank;
+    if (!finalBank) {
+      toast.error('Please select the bank transferred from');
+      return;
+    }
 
     setLoading(true);
 
@@ -155,7 +201,7 @@ export default function CheckoutPage() {
         paymentDetails: {
           senderName: finalSender,
           amountPaid: finalAmount,
-          senderBank: finalBank || 'Direct Transfer',
+          senderBank: finalBank,
           transferReference: transferReference.trim() || undefined,
           paymentNotes: paymentNotes.trim() || undefined,
           paymentDate: new Date().toISOString(),
@@ -192,7 +238,7 @@ export default function CheckoutPage() {
       }).catch((e) => console.error('Customer acknowledgment error:', e));
 
       clearCart();
-      toast.success('Payment confirmation submitted! Redirecting to your live order tracker...');
+      toast.success('Transfer submitted! Redirecting to your live order tracker...');
       router.push(`/track-order?orderId=${orderId}`);
     } catch {
       toast.error('Failed to submit order. Please contact atelier support.');
@@ -203,197 +249,299 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#18181b] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-10">
-        {/* Header */}
-        <div>
-          <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#c2410c] bg-[#c2410c]/10 px-3 py-1 rounded-full inline-block mb-2">
-            Secure Direct Transfer Checkout
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header Banner */}
+        <div className="text-center space-y-2">
+          <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#c2410c] bg-[#c2410c]/10 px-3.5 py-1 rounded-full inline-block">
+            Direct Nigerian Bank Transfer Checkout
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#18181b]">
             Complete Your Order
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Fill in your delivery address, transfer directly to our official bank account, and click &ldquo;I Have Paid&rdquo; to notify the atelier.
+          <p className="text-sm text-gray-600 max-w-lg mx-auto">
+            Follow the 3 easy steps below to place your bespoke order. We verify transfers in under 5 minutes.
           </p>
         </div>
 
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column (2 Cols): Delivery Form + Bank Account Card + "I Have Paid" Form */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* 1. Delivery Information Card */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-black/5 space-y-5">
-              <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-                <span className="w-6 h-6 rounded-full bg-[#18181b] text-white flex items-center justify-center text-xs font-bold">
-                  1
-                </span>
-                <h2 className="font-serif text-lg font-bold text-[#18181b]">
-                  Delivery Information
-                </h2>
-              </div>
+        {/* ── 3-Step Wizard Navigation Indicator ── */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-black/5">
+          <div className="flex items-center justify-between max-w-2xl mx-auto relative">
+            {/* Connecting line */}
+            <div className="absolute top-1/2 left-8 right-8 h-1 bg-gray-200 -translate-y-1/2 -z-0" />
+            <div
+              className="absolute top-1/2 left-8 h-1 bg-[#c2410c] -translate-y-1/2 transition-all duration-500 -z-0"
+              style={{
+                width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%',
+              }}
+            />
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { name: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Chioma Adeyemi', col: 1 },
-                  { name: 'email', label: 'Email Address (for order receipts & tracking)', type: 'email', placeholder: 'you@example.com', col: 1 },
-                  { name: 'phone', label: 'Phone Number (for courier contact)', type: 'tel', placeholder: '+234 800 000 0000', col: 1 },
-                  { name: 'address', label: 'Street Delivery Address', type: 'text', placeholder: 'e.g. 12 Asooke Close, Lekki Phase 1', col: 2 },
-                  { name: 'city', label: 'City / District', type: 'text', placeholder: 'e.g. Lekki / Ikeja', col: 1 },
-                ].map((f) => (
-                  <div key={f.name} className={f.col === 2 ? 'sm:col-span-2' : ''}>
+            {[
+              { step: 1, label: 'Delivery Address' },
+              { step: 2, label: 'Bank Transfer' },
+              { step: 3, label: 'I Have Paid' },
+            ].map((s) => {
+              const isDone = currentStep > s.step;
+              const isCurrent = currentStep === s.step;
+              return (
+                <button
+                  key={s.step}
+                  type="button"
+                  disabled={currentStep < s.step}
+                  onClick={() => {
+                    if (currentStep > s.step) {
+                      setCurrentStep(s.step as 1 | 2 | 3);
+                    }
+                  }}
+                  className={`relative z-10 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                    isDone
+                      ? 'bg-[#18181b] text-white hover:bg-[#312e81] cursor-pointer'
+                      : isCurrent
+                      ? 'bg-[#c2410c] text-white ring-4 ring-[#c2410c]/25 shadow-md'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-black bg-white/20">
+                    {isDone ? <FiCheck size={12} /> : s.step}
+                  </span>
+                  <span className="hidden sm:inline">{s.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Grid: Step Content + Order Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column (2 Cols): Active Step View */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* ══════════════════════════════════════════════════════════════════
+                STEP 1: Delivery Information Form
+            ══════════════════════════════════════════════════════════════════ */}
+            {currentStep === 1 && (
+              <form onSubmit={handleProceedToStep2} className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-black/5 space-y-6 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-full bg-[#18181b] text-white flex items-center justify-center text-xs font-bold">
+                      1
+                    </span>
+                    <h2 className="font-serif text-lg sm:text-xl font-bold text-[#18181b]">
+                      Delivery Information
+                    </h2>
+                  </div>
+                  <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">
+                    Step 1 of 3
+                  </span>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    { name: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Babatunde Lawal', col: 1 },
+                    { name: 'email', label: 'Email Address (for order receipt & tracking) *', type: 'email', placeholder: 'you@example.com', col: 1 },
+                    { name: 'phone', label: 'Phone Number (for courier contact) *', type: 'tel', placeholder: '+234 800 000 0000', col: 1 },
+                    { name: 'address', label: 'Street Delivery Address *', type: 'text', placeholder: 'e.g. 5 John Street, Massallacin, Ilupeju', col: 2 },
+                    { name: 'city', label: 'City / District *', type: 'text', placeholder: 'e.g. Ikeja / Lagos Island', col: 1 },
+                  ].map((f) => (
+                    <div key={f.name} className={f.col === 2 ? 'sm:col-span-2' : ''}>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                        {f.label}
+                      </label>
+                      <input
+                        name={f.name}
+                        type={f.type}
+                        required
+                        placeholder={f.placeholder}
+                        value={(form as Record<string, string>)[f.name]}
+                        onChange={handleDeliveryChange}
+                        className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                      />
+                    </div>
+                  ))}
+
+                  <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                      {f.label}
+                      Destination State *
                     </label>
-                    <input
-                      name={f.name}
-                      type={f.type}
+                    <select
+                      name="state"
                       required
-                      placeholder={f.placeholder}
-                      value={(form as Record<string, string>)[f.name]}
+                      value={form.state}
                       onChange={handleDeliveryChange}
                       className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
-                    />
+                    >
+                      <option value="">Select Destination State</option>
+                      {NIGERIAN_STATES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
                   </div>
-                ))}
+                </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                    State
-                  </label>
-                  <select
-                    name="state"
-                    required
-                    value={form.state}
-                    onChange={handleDeliveryChange}
-                    className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full bg-[#18181b] hover:bg-[#312e81] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                   >
-                    <option value="">Select Destination State</option>
-                    {NIGERIAN_STATES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                    Proceed to Bank Payment <FiArrowRight size={16} />
+                  </button>
                 </div>
-              </div>
-            </div>
+              </form>
+            )}
 
-            {/* 2. Official Bank Account Details Card */}
-            <div className="bg-gradient-to-br from-[#18181b] to-[#27272a] text-white rounded-3xl p-6 sm:p-8 shadow-md border border-white/10 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#d97706] text-black flex items-center justify-center text-xs font-bold">
-                    2
-                  </span>
-                  <h2 className="font-serif text-lg font-bold text-white">
-                    Direct Bank Transfer Details
-                  </h2>
-                </div>
-                <div className="flex items-center gap-1.5 text-[#d97706] text-xs font-bold uppercase tracking-wider">
-                  <FiCreditCard size={15} /> Official Account
-                </div>
-              </div>
-
-              {/* Amount to transfer highlight */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] uppercase tracking-wider text-white/50 font-bold">
-                    Total Amount to Transfer
-                  </p>
-                  <p className="font-serif text-2xl sm:text-3xl font-extrabold text-[#d97706]">
-                    ₦{total().toLocaleString()}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(total().toString(), 'amount')}
-                  className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  {copiedAmount ? <FiCheck className="text-emerald-400" /> : <FiCopy size={13} />}
-                  <span>{copiedAmount ? 'Copied Amount' : 'Copy Amount'}</span>
-                </button>
-              </div>
-
-              {/* Account details grid */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* Bank Name */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Bank Name</p>
-                  <p className="font-serif text-lg font-bold text-white mt-1">{bankDetails.bankName}</p>
+            {/* ══════════════════════════════════════════════════════════════════
+                STEP 2: Bank Transfer Details Card
+            ══════════════════════════════════════════════════════════════════ */}
+            {currentStep === 2 && (
+              <div className="bg-gradient-to-br from-[#18181b] to-[#27272a] text-white rounded-3xl p-6 sm:p-8 shadow-md border border-white/10 space-y-6 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-full bg-[#d97706] text-black flex items-center justify-center text-xs font-bold">
+                      2
+                    </span>
+                    <h2 className="font-serif text-lg sm:text-xl font-bold text-white">
+                      Make Your Bank Transfer
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[#d97706] text-xs font-bold uppercase tracking-wider">
+                    <FiCreditCard size={15} /> Official Account
+                  </div>
                 </div>
 
-                {/* Account Name */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Account Name</p>
-                  <p className="font-serif text-lg font-bold text-white mt-1">{bankDetails.accountName}</p>
-                </div>
-
-                {/* Account Number with Copy Button */}
-                <div className="sm:col-span-2 bg-[#d97706]/10 border border-[#d97706]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                {/* ⚡ 5-Minute Guarantee Banner */}
+                <div className="bg-[#d97706]/15 border border-[#d97706]/35 rounded-2xl p-4 flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#d97706] text-black flex items-center justify-center font-black text-xs flex-shrink-0">
+                    <FiClock size={18} />
+                  </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-[#d97706]">
-                      Account Number (NUBAN)
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#d97706]">
+                      Fast Verification: Orders Confirmed in Under 5 Minutes
                     </p>
-                    <p className="font-mono text-2xl sm:text-3xl font-black text-white tracking-widest mt-0.5">
-                      {bankDetails.accountNumber}
+                    <p className="text-[11px] text-white/80 mt-0.5 leading-relaxed">
+                      Please make the transfer to the official bank account below. We confirm all payments in under 5 minutes and immediately dispatch your official receipt!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Amount to transfer highlight */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-white/50 font-bold">
+                      Total Amount to Transfer
+                    </p>
+                    <p className="font-serif text-2xl sm:text-3xl font-extrabold text-[#d97706]">
+                      ₦{total().toLocaleString()}
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy(bankDetails.accountNumber, 'account')}
-                    className="inline-flex items-center gap-2 bg-[#d97706] hover:bg-[#f59e0b] text-black px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
+                    onClick={() => handleCopy(total().toString(), 'amount')}
+                    className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
-                    {copiedAccount ? (
-                      <>
-                        <FiCheck size={16} /> Copied!
-                      </>
-                    ) : (
-                      <>
-                        <FiCopy size={16} /> Copy Account
-                      </>
-                    )}
+                    {copiedAmount ? <FiCheck className="text-emerald-400" /> : <FiCopy size={13} />}
+                    <span>{copiedAmount ? 'Copied Amount' : 'Copy Amount'}</span>
+                  </button>
+                </div>
+
+                {/* Account details grid */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Bank Name */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Bank Name</p>
+                    <p className="font-serif text-xl font-bold text-white mt-1">LOTUS BANK</p>
+                  </div>
+
+                  {/* Account Name */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Account Name</p>
+                    <p className="font-serif text-lg font-bold text-white mt-1">TUNMISEALADIRE_ASOOKE</p>
+                  </div>
+
+                  {/* Account Number with Copy Button */}
+                  <div className="sm:col-span-2 bg-[#d97706]/10 border border-[#d97706]/30 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#d97706]">
+                        Account Number (NUBAN)
+                      </p>
+                      <p className="font-mono text-3xl font-black text-white tracking-widest mt-0.5">
+                        1009183129
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('1009183129', 'account')}
+                      className="inline-flex items-center gap-2 bg-[#d97706] hover:bg-[#f59e0b] text-black px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
+                    >
+                      {copiedAccount ? (
+                        <>
+                          <FiCheck size={16} /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <FiCopy size={16} /> Copy Account
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Narration guidance */}
+                <div className="flex items-start gap-2.5 text-xs text-white/70 bg-white/5 p-3.5 rounded-xl border border-white/5">
+                  <FiInfo size={16} className="text-[#d97706] flex-shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong>Transfer Narration:</strong> Please use your <strong>Full Name ({form.name || 'Your Name'})</strong> as the transaction remark/narration on your banking app.
+                  </p>
+                </div>
+
+                {/* Navigation Buttons for Step 2 */}
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentStep(1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="sm:w-1/3 bg-white/10 hover:bg-white/20 text-white py-3.5 px-4 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <FiArrowLeft size={14} /> Back to Address
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleProceedToStep3}
+                    className="sm:w-2/3 bg-[#c2410c] hover:bg-[#ea580c] text-white py-4 px-6 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    <FiCheckCircle size={18} /> I Have Sent The Payment &rarr;
                   </button>
                 </div>
               </div>
+            )}
 
-              {/* Narration guidance */}
-              <div className="flex items-start gap-2.5 text-xs text-white/70 bg-white/5 p-3.5 rounded-xl border border-white/5">
-                <FiInfo size={16} className="text-[#d97706] flex-shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  <strong>Important:</strong> When making the transfer, please use your <strong>Full Name ({form.name || 'Your Name'})</strong> as the transfer remark/narration.
-                </p>
-              </div>
-
-              {/* Prompt to open confirmation form */}
-              {!showPaidSection && (
-                <button
-                  type="button"
-                  onClick={() => setShowPaidSection(true)}
-                  className="w-full bg-[#c2410c] hover:bg-[#ea580c] text-white py-3.5 px-6 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <FiCheckCircle size={18} /> I Have Made The Transfer &rarr; Fill Details
-                </button>
-              )}
-            </div>
-
-            {/* 3. "I Have Paid" Verification Form */}
-            {(showPaidSection || true) && (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-black/5 space-y-6 animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            {/* ══════════════════════════════════════════════════════════════════
+                STEP 3: Payment Confirmation Form ("I Have Paid")
+            ══════════════════════════════════════════════════════════════════ */}
+            {currentStep === 3 && (
+              <form onSubmit={handleSubmitOrder} className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-black/5 space-y-6 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#c2410c] text-white flex items-center justify-center text-xs font-bold">
+                    <span className="w-7 h-7 rounded-full bg-[#c2410c] text-white flex items-center justify-center text-xs font-bold">
                       3
                     </span>
-                    <h2 className="font-serif text-lg font-bold text-[#18181b]">
+                    <h2 className="font-serif text-lg sm:text-xl font-bold text-[#18181b]">
                       Payment Confirmation Form (&ldquo;I Have Paid&rdquo;)
                     </h2>
                   </div>
-                  <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">
+                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
                     Instant Atelier Alert
                   </span>
                 </div>
 
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Submit the transfer details below so our concierge finance team can cross-reference your payment and immediately confirm your order.
-                </p>
+                {/* 5-minute confirmation reminder */}
+                <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex items-center gap-3 text-amber-900">
+                  <FiClock size={20} className="text-[#d97706] flex-shrink-0" />
+                  <p className="text-xs leading-relaxed">
+                    <strong>We confirm orders in under 5 minutes.</strong> Once submitted, our accounts team immediately validates the transfer and emails your receipt and tracking link to <strong>{form.email}</strong>.
+                  </p>
+                </div>
 
                 {/* Pre-filled Order & Customization Summary Box */}
                 <div className="bg-[#faf8f5] rounded-2xl p-4 sm:p-5 border border-black/5 space-y-3">
@@ -427,7 +575,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Chioma Adeyemi"
+                      placeholder="e.g. Babatunde Lawal"
                       value={senderName}
                       onChange={(e) => setSenderName(e.target.value)}
                       className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
@@ -503,7 +651,7 @@ export default function CheckoutPage() {
                     </label>
                     <textarea
                       rows={2}
-                      placeholder="e.g. Transferred via OPay mobile app at 2:30 PM."
+                      placeholder="e.g. Transferred via mobile app at 2:30 PM."
                       value={paymentNotes}
                       onChange={(e) => setPaymentNotes(e.target.value)}
                       className="w-full px-4 py-2.5 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all resize-none"
@@ -511,29 +659,43 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Final Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading || items.length === 0}
-                  className="w-full bg-[#18181b] hover:bg-[#312e81] text-white font-bold py-4 rounded-2xl transition-all shadow-md disabled:opacity-50 text-base uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-                      Submitting Confirmation...
-                    </>
-                  ) : (
-                    <>
-                      I Have Paid &bull; Submit Confirmation <FiArrowRight size={16} />
-                    </>
-                  )}
-                </button>
+                {/* Action Buttons for Step 3 */}
+                <div className="pt-3 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentStep(2);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="sm:w-1/3 bg-gray-100 hover:bg-gray-200 text-[#18181b] py-3.5 px-4 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <FiArrowLeft size={14} /> Back to Bank Details
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading || items.length === 0}
+                    className="sm:w-2/3 bg-[#18181b] hover:bg-[#312e81] text-white font-bold py-4 rounded-2xl transition-all shadow-md disabled:opacity-50 text-sm uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+                        Submitting Confirmation...
+                      </>
+                    ) : (
+                      <>
+                        <FiCheckCircle size={17} /> I Have Paid &bull; Submit Order
+                      </>
+                    )}
+                  </button>
+                </div>
 
                 <p className="text-center text-xs text-gray-400">
                   By clicking submit, our admin is alerted immediately to confirm your transfer and queue your garments for tailoring.
                 </p>
-              </div>
+              </form>
             )}
+
           </div>
 
           {/* Right Column: Order Summary Sidebar */}
@@ -590,15 +752,25 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="bg-[#faf8f5] p-3.5 rounded-2xl border border-black/5 flex items-center gap-2.5 text-xs text-gray-600">
-                    <FiShield size={18} className="text-[#c2410c] flex-shrink-0" />
+                  {/* 5-minute promise in summary box */}
+                  <div className="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/60 space-y-1">
+                    <div className="flex items-center gap-2 text-[#c2410c] font-bold text-xs uppercase tracking-wider">
+                      <FiClock size={14} /> Under 5 Mins Confirmation
+                    </div>
+                    <p className="text-[11px] text-gray-600 leading-relaxed">
+                      We manually verify all bank transfers in under 5 minutes to fast-track your atelier production.
+                    </p>
+                  </div>
+
+                  <div className="bg-[#faf8f5] p-3 rounded-2xl border border-black/5 flex items-center gap-2.5 text-xs text-gray-600">
+                    <FiShield size={16} className="text-[#c2410c] flex-shrink-0" />
                     <span>Direct atelier transfer with manual verification guarantees order security.</span>
                   </div>
                 </>
               )}
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

@@ -484,7 +484,7 @@ export default function AdminDashboard() {
                     required
                     value={bankForm.bankName}
                     onChange={(e) => setBankForm((b) => ({ ...b, bankName: e.target.value }))}
-                    placeholder="e.g. Moniepoint MFB"
+                    placeholder="e.g. LOTUS BANK"
                     className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
                   />
                 </div>
@@ -498,7 +498,7 @@ export default function AdminDashboard() {
                     required
                     value={bankForm.accountName}
                     onChange={(e) => setBankForm((b) => ({ ...b, accountName: e.target.value }))}
-                    placeholder="e.g. Tunmise Aladire Asooke"
+                    placeholder="e.g. TUNMISEALADIRE_ASOOKE"
                     className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
                   />
                 </div>
@@ -512,7 +512,7 @@ export default function AdminDashboard() {
                     required
                     value={bankForm.accountNumber}
                     onChange={(e) => setBankForm((b) => ({ ...b, accountNumber: e.target.value }))}
-                    placeholder="e.g. 8239014820"
+                    placeholder="e.g. 1009183129"
                     className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-mono font-bold"
                   />
                 </div>
@@ -525,7 +525,7 @@ export default function AdminDashboard() {
                     type="text"
                     value={bankForm.instructions || ''}
                     onChange={(e) => setBankForm((b) => ({ ...b, instructions: e.target.value }))}
-                    placeholder="e.g. Please use your Full Name as narration when making the transfer."
+                    placeholder="e.g. Please use your Full Name as narration. We confirm orders in under 5 minutes!"
                     className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706]"
                   />
                 </div>

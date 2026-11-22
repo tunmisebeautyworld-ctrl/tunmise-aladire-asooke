@@ -348,10 +348,10 @@ export async function updateMessageStatus(
 // ─── Store Settings ───────────────────────────────────────────────────────────
 
 export const DEFAULT_BANK_DETAILS: BankDetails = {
-  bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'Moniepoint MFB',
-  accountName: process.env.NEXT_PUBLIC_ACCOUNT_NAME || 'Tunmise Aladire Asooke',
-  accountNumber: process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || '8239014820',
-  instructions: 'Please transfer the exact order amount and use your Full Name as the transaction remark/narration.',
+  bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'LOTUS BANK',
+  accountName: process.env.NEXT_PUBLIC_ACCOUNT_NAME || 'TUNMISEALADIRE_ASOOKE',
+  accountNumber: process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || '1009183129',
+  instructions: 'Please transfer the exact order amount and use your Full Name as the transaction remark/narration. We confirm orders in under 5 minutes!',
 };
 
 const DEFAULT_SETTINGS: StoreSettings = {
