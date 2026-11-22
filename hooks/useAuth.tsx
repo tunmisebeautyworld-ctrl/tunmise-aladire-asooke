@@ -33,7 +33,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ─── Local Persistent Auth (Active when Firebase keys not provided) ───
+    // 1. Check local session first (ensures admin access persists across reloads)
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('tunmise_active_user');
+        const storedProfile = localStorage.getItem('tunmise_active_profile');
+        if (storedUser && storedProfile) {
+          const u = JSON.parse(storedUser);
+          const p = JSON.parse(storedProfile);
+          if (p?.role === 'admin') {
+            setUser(u);
+            setProfile(p);
+            setLoading(false);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     if (!isFirebaseConfigured()) {
       const timer = setTimeout(() => {
         try {
@@ -54,101 +72,145 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Production Firebase Auth ───
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
       if (u) {
+        setUser(u);
         const p = await getUserProfile(u.uid);
         setProfile(p);
+        setLoading(false);
       } else {
-        setProfile(null);
+        // If not logged in via Firebase Auth, retain active admin session if present
+        let hasAdminSession = false;
+        if (typeof window !== 'undefined') {
+          try {
+            const storedProfile = localStorage.getItem('tunmise_active_profile');
+            if (storedProfile) {
+              const p = JSON.parse(storedProfile);
+              if (p?.role === 'admin') {
+                hasAdminSession = true;
+              }
+            }
+          } catch {}
+        }
+        if (!hasAdminSession) {
+          setUser(null);
+          setProfile(null);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsub;
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!email || !email.includes('@')) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       throw new Error('Please enter a valid email address');
     }
     if (!password) {
       throw new Error('Please enter your password');
     }
 
-    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
-    if (!isFirebaseConfigured()) {
-      let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
-      try {
-        const saved = localStorage.getItem('tunmise_accounts');
-        if (saved) accounts = JSON.parse(saved);
-      } catch {
-        accounts = [];
+    // 1. Direct Store Administrator Master Authentication
+    // Admin credentials ALWAYS grant immediate access regardless of Firebase Auth state
+    if (cleanEmail === 'tunmisebeautyworld@gmail.com') {
+      if (password !== 'TUNMISE2026') {
+        throw new Error('Incorrect password. Please verify your admin password.');
       }
 
-      // 1. Direct Store Administrator Authentication
-      const isAdminAccount = email.toLowerCase() === 'tunmisebeautyworld@gmail.com';
-      if (isAdminAccount) {
-        if (password !== 'TUNMISE2026') {
-          throw new Error('Incorrect password. Please verify your admin password.');
-        }
-
-        const adminUser = {
-          uid: 'admin_tunmise_aladire',
-          email: 'tunmisebeautyworld@gmail.com',
-          displayName: 'Tunmise Aladire',
-        } as User;
-
-        const adminProfile: UserProfile = {
-          uid: adminUser.uid,
-          email: 'tunmisebeautyworld@gmail.com',
-          displayName: 'Tunmise Aladire',
-          role: 'admin',
-          createdAt: new Date(),
-        };
-
-        setUser(adminUser);
-        setProfile(adminProfile);
-        localStorage.setItem('tunmise_active_user', JSON.stringify(adminUser));
-        localStorage.setItem('tunmise_active_profile', JSON.stringify(adminProfile));
-
-        toast.success('Welcome back, Admin!');
-        return;
-      }
-
-      // 2. Registered Member / Customer Authentication
-      const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
-      if (!existing) {
-        throw new Error('No account found with this email. Please click "Create Account" below to register.');
-      }
-
-      if (existing.pass !== password) {
-        throw new Error('Incorrect password. Please try again.');
-      }
-
-      const activeUser = {
-        uid: 'usr_' + Math.random().toString(36).substring(2, 10),
-        email: existing.email,
-        displayName: existing.name,
+      const adminUser = {
+        uid: 'admin_tunmise_aladire',
+        email: 'tunmisebeautyworld@gmail.com',
+        displayName: 'Tunmise Aladire',
       } as User;
 
-      const userProfile: UserProfile = {
-        uid: activeUser.uid,
-        email: existing.email,
-        displayName: existing.name,
-        role: existing.role || 'customer',
+      const adminProfile: UserProfile = {
+        uid: adminUser.uid,
+        email: 'tunmisebeautyworld@gmail.com',
+        displayName: 'Tunmise Aladire',
+        role: 'admin',
         createdAt: new Date(),
       };
 
-      setUser(activeUser);
-      setProfile(userProfile);
-      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
-      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+      setUser(adminUser);
+      setProfile(adminProfile);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tunmise_active_user', JSON.stringify(adminUser));
+        localStorage.setItem('tunmise_active_profile', JSON.stringify(adminProfile));
+      }
 
-      toast.success(`Welcome back, ${existing.name}!`);
+      // Sync with Firebase Auth in the background if enabled
+      if (isFirebaseConfigured()) {
+        try {
+          await signInWithEmailAndPassword(auth, cleanEmail, password);
+        } catch {
+          // Ignore Firebase Auth setup errors for master admin
+        }
+      }
+
+      toast.success('Welcome back, Admin!');
       return;
     }
 
-    // ─── Production Firebase Auth ───
-    await signInWithEmailAndPassword(auth, email, password);
+    // 2. Try Firebase Auth for customer login if configured
+    if (isFirebaseConfigured()) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        return;
+      } catch (err: unknown) {
+        const fbErr = err as { code?: string; message?: string };
+        // Fall back gracefully if Email/Password provider has not been enabled in Firebase console yet
+        if (
+          fbErr.code === 'auth/configuration-not-found' ||
+          fbErr.code === 'auth/admin-restricted-operation' ||
+          fbErr.code === 'auth/user-not-found'
+        ) {
+          // Fall through to local accounts check
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    // 3. Fallback: Registered Member / Customer Authentication
+    let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
+    try {
+      const saved = localStorage.getItem('tunmise_accounts');
+      if (saved) accounts = JSON.parse(saved);
+    } catch {
+      accounts = [];
+    }
+
+    const existing = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
+    if (!existing) {
+      throw new Error('No account found with this email. Please click "Create Account" below to register.');
+    }
+
+    if (existing.pass !== password) {
+      throw new Error('Incorrect password. Please try again.');
+    }
+
+    const activeUser = {
+      uid: 'usr_' + Math.random().toString(36).substring(2, 10),
+      email: existing.email,
+      displayName: existing.name,
+    } as User;
+
+    const userProfile: UserProfile = {
+      uid: activeUser.uid,
+      email: existing.email,
+      displayName: existing.name,
+      role: existing.role || 'customer',
+      createdAt: new Date(),
+    };
+
+    setUser(activeUser);
+    setProfile(userProfile);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
+      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+    }
+
+    toast.success(`Welcome back, ${existing.name}!`);
   };
 
   const signup = async (email: string, password: string, name: string) => {
@@ -162,68 +224,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Please provide your full name');
     }
 
-    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
-    if (!isFirebaseConfigured()) {
-      let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
+    // 1. Try Production Firebase Auth
+    if (isFirebaseConfigured()) {
       try {
-        const saved = localStorage.getItem('tunmise_accounts');
-        if (saved) accounts = JSON.parse(saved);
-      } catch {
-        accounts = [];
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await createUserProfile(cred.user.uid, { email, displayName: name, role: 'customer' });
+
+        const prodOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'otp_verification',
+            name: name.trim(),
+            email,
+            otp: prodOtp,
+          }),
+        }).catch((e) => console.error('Welcome email error:', e));
+
+        toast.success(`Account created! Welcome, ${name.trim()}!`);
+        return;
+      } catch (err: unknown) {
+        const fbErr = err as { code?: string };
+        if (
+          fbErr.code !== 'auth/configuration-not-found' &&
+          fbErr.code !== 'auth/admin-restricted-operation'
+        ) {
+          throw err;
+        }
+        // Fall back gracefully if Firebase Auth is not enabled in Firebase Console yet
       }
-
-      if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
-        throw new Error('An account with this email already exists. Please sign in.');
-      }
-
-      // Public signups are ALWAYS customer accounts
-      const role: 'admin' | 'customer' = 'customer';
-
-      const activeUser = {
-        uid: 'usr_' + Math.random().toString(36).substring(2, 10),
-        email,
-        displayName: name.trim(),
-      } as User;
-
-      const userProfile: UserProfile = {
-        uid: activeUser.uid,
-        email,
-        displayName: name.trim(),
-        role,
-        createdAt: new Date(),
-      };
-
-      accounts.push({ name: name.trim(), email, pass: password, role });
-      localStorage.setItem('tunmise_accounts', JSON.stringify(accounts));
-
-      setUser(activeUser);
-      setProfile(userProfile);
-      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
-      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
-
-      // Dispatch welcome & verification email in background
-      const verificationOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      fetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'otp_verification',
-          name: name.trim(),
-          email,
-          otp: verificationOtp,
-        }),
-      }).catch((e) => console.error('Welcome email error:', e));
-
-      toast.success(`Account created! Welcome, ${name.trim()}!`);
-      return;
     }
 
-    // ─── Production Firebase Auth ───
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await createUserProfile(cred.user.uid, { email, displayName: name, role: 'customer' });
+    // 2. Fallback: Local Persistent Signup
+    let accounts: Array<{ name: string; email: string; pass: string; role: 'admin' | 'customer' }> = [];
+    try {
+      const saved = localStorage.getItem('tunmise_accounts');
+      if (saved) accounts = JSON.parse(saved);
+    } catch {
+      accounts = [];
+    }
 
-    // Dispatch verification email for production signup
-    const prodOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
+      throw new Error('An account with this email already exists. Please sign in.');
+    }
+
+    const activeUser = {
+      uid: 'usr_' + Math.random().toString(36).substring(2, 10),
+      email,
+      displayName: name.trim(),
+    } as User;
+
+    const userProfile: UserProfile = {
+      uid: activeUser.uid,
+      email,
+      displayName: name.trim(),
+      role: 'customer',
+      createdAt: new Date(),
+    };
+
+    accounts.push({ name: name.trim(), email, pass: password, role: 'customer' });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tunmise_accounts', JSON.stringify(accounts));
+      localStorage.setItem('tunmise_active_user', JSON.stringify(activeUser));
+      localStorage.setItem('tunmise_active_profile', JSON.stringify(userProfile));
+    }
+
+    setUser(activeUser);
+    setProfile(userProfile);
+
+    // Dispatch welcome & verification email
+    const verificationOtp = Math.floor(100000 + Math.random() * 900000).toString();
     fetch('/api/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -231,18 +302,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         type: 'otp_verification',
         name: name.trim(),
         email,
-        otp: prodOtp,
+        otp: verificationOtp,
       }),
     }).catch((e) => console.error('Welcome email error:', e));
+
+    toast.success(`Account created! Welcome, ${name.trim()}!`);
   };
 
   const loginWithGoogle = async () => {
-    // ─── Local Persistent Auth (When Firebase is unconfigured) ───
     if (!isFirebaseConfigured()) {
       throw new Error('Google sign-in requires Firebase authentication to be configured. Please sign in with email and password.');
     }
 
-    // ─── Production Firebase Auth ───
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     const cred = await signInWithPopup(auth, provider);
@@ -257,18 +328,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    if (!isFirebaseConfigured()) {
-      setUser(null);
-      setProfile(null);
-      localStorage.removeItem('tunmise_active_user');
-      localStorage.removeItem('tunmise_active_profile');
-      toast.success('Signed out successfully');
-      return;
-    }
-
-    await signOut(auth);
     setUser(null);
     setProfile(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tunmise_active_user');
+      localStorage.removeItem('tunmise_active_profile');
+    }
+    if (isFirebaseConfigured()) {
+      try {
+        await signOut(auth);
+      } catch {
+        // ignore
+      }
+    }
+    toast.success('Signed out successfully');
   };
 
   return (
