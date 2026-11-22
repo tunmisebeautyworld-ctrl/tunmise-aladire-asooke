@@ -84,8 +84,9 @@ export default function ProductDetailPage() {
     async function load() {
       try {
         let p = await getProductById(id);
-        if (!p && id.startsWith('demo-')) {
-          p = DEMO_PRODUCTS.find((x) => x.id === id) || null;
+        if (!p) {
+          const cleanId = id.replace(/^demo-/, '');
+          p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
         }
         setProduct(p);
         if (p) {
@@ -93,7 +94,8 @@ export default function ProductDetailPage() {
           setSelectedColor(p.colors[0] ? p.colors[0].split('|')[0] : '');
         }
       } catch {
-        const p = DEMO_PRODUCTS.find((x) => x.id === id) || null;
+        const cleanId = id.replace(/^demo-/, '');
+        const p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
         setProduct(p);
         if (p) {
           setSelectedSize(p.sizes[0] || '');

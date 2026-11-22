@@ -106,8 +106,9 @@ export default function EditProductPage() {
     async function loadProduct() {
       try {
         let p = await getProductById(id);
-        if (!p && id.startsWith('demo-')) {
-          p = DEMO_PRODUCTS.find((x) => x.id === id) || null;
+        if (!p) {
+          const cleanId = id.replace(/^demo-/, '');
+          p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
         }
         if (p) {
           setForm({

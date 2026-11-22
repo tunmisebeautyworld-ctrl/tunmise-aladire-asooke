@@ -90,11 +90,15 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const demo = DEMO_PRODUCTS.find((x) => x.id === id);
-  if (demo) return demo;
+  const cleanId = id.replace(/^demo-/, '');
+  const match = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId);
+  if (match) return match;
   if (!isFirebaseConfigured()) return null;
   try {
-    const snap = await getDoc(doc(db, 'products', id));
+    let snap = await getDoc(doc(db, 'products', id));
+    if (!snap.exists() && id.startsWith('demo-')) {
+      snap = await getDoc(doc(db, 'products', cleanId));
+    }
     if (!snap.exists()) return null;
     return { id: snap.id, ...snap.data() } as Product;
   } catch {
@@ -212,11 +216,21 @@ export async function syncLocalOrdersToFirestore(): Promise<void> {
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  const cleanId = orderId.trim().replace(/^#/, '');
+  const rawId = orderId.trim().replace(/^#/, '');
+  const cleanId = rawId.toLowerCase();
+  const normalizedWithPrefix = rawId.toUpperCase().startsWith('ORD-') ? rawId.toUpperCase() : `ORD-${rawId.toUpperCase()}`;
 
   if (isFirebaseConfigured()) {
     try {
-      const snap = await getDoc(doc(db, 'orders', cleanId));
+      // 1. Try exact and upper-cased document ID
+      let snap = await getDoc(doc(db, 'orders', rawId));
+      if (!snap.exists()) {
+        snap = await getDoc(doc(db, 'orders', rawId.toUpperCase()));
+      }
+      if (!snap.exists()) {
+        snap = await getDoc(doc(db, 'orders', normalizedWithPrefix));
+      }
+
       if (snap.exists()) {
         const data = snap.data();
         return {
@@ -225,8 +239,21 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
           createdAt: parseFirestoreDate(data.createdAt),
         } as Order;
       }
+
+      // 2. Try query by paystackRef or transferReference
+      const qRef = query(collection(db, 'orders'), where('paystackRef', '==', rawId));
+      const refSnap = await getDocs(qRef);
+      if (!refSnap.empty) {
+        const docSnap = refSnap.docs[0];
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          ...data,
+          createdAt: parseFirestoreDate(data.createdAt),
+        } as Order;
+      }
     } catch {
-      // ignore
+      // ignore network/firestore error and fall back to local storage
     }
   }
 
@@ -237,10 +264,20 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
       if (saved) {
         const localOrders: Order[] = JSON.parse(saved);
         const match = localOrders.find(
-          (o) =>
-            o.id.toLowerCase() === cleanId.toLowerCase() ||
-            o.id.toLowerCase().startsWith(cleanId.toLowerCase()) ||
-            cleanId.toLowerCase().includes(o.id.slice(0, 8).toLowerCase())
+          (o) => {
+            const id = (o.id || '').toLowerCase();
+            const pRef = (o.paystackRef || '').toLowerCase();
+            const tRef = (o.paymentDetails?.transferReference || '').toLowerCase();
+            return (
+              id === cleanId ||
+              id === normalizedWithPrefix.toLowerCase() ||
+              id.replace(/^ord-/, '') === cleanId.replace(/^ord-/, '') ||
+              (pRef && pRef === cleanId) ||
+              (tRef && tRef === cleanId) ||
+              id.startsWith(cleanId) ||
+              cleanId.includes(id.slice(0, 8))
+            );
+          }
         );
         if (match) return match;
       }

@@ -85,7 +85,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="text-white/90 text-sm sm:text-base md:text-lg mb-8 max-w-md font-sans tracking-wide leading-relaxed drop-shadow animate-fade-in-up">
-            Every piece made to order in Nigeria.
+            Every piece ready to wear in Nigeria.
             <br />
             Elevating tradition. Styled for today.
           </p>

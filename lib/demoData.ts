@@ -1,8 +1,8 @@
 import type { Product, CustomerMessage } from '@/types';
 
-export const DEMO_PRODUCTS: Product[] = [
+export const STORE_PRODUCTS: Product[] = [
   {
-    id: 'demo-adire-peplum-harem',
+    id: 'adire-peplum-harem',
     name: 'Adire Crepe Top and Denim Adire Trouser',
     description: 'Premium green-and-white patterned Adire crepe peplum top paired with stylish, vibrant pink tie-dye harem-style denim trousers.',
     price: 45000,
@@ -15,7 +15,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-20'),
   },
   {
-    id: 'demo-adire-crepe-2pcs',
+    id: 'adire-crepe-2pcs',
     name: 'Adire Crepe 2pcs Set',
     description: 'Sophisticated terracotta red two-piece coord set featuring wide-leg pants and a loose wrap-style kimono top in a rich cultural pattern.',
     price: 45000,
@@ -28,7 +28,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-21'),
   },
   {
-    id: 'demo-adire-handkerchief-skirt',
+    id: 'adire-handkerchief-skirt',
     name: 'Adire Crepe Handkerchief Skirt with Top',
     description: 'Chic tie-dye co-ord set featuring a flared handkerchief skirt paired with a matching crop top in a beautiful red and white dye print.',
     price: 35000,
@@ -41,7 +41,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-22'),
   },
   {
-    id: 'demo-adire-wrap-skirt',
+    id: 'adire-wrap-skirt',
     name: 'Adire Crepe Top and Denim Adire Skirt',
     description: 'Vibrant yellow-gold long sleeve wrap top paired with a layered green-and-white patterned Adire tiered denim mini skirt.',
     price: 40000,
@@ -54,7 +54,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-23'),
   },
   {
-    id: 'demo-adire-caribbean-skirt',
+    id: 'adire-caribbean-skirt',
     name: 'Adire Crepe Caribbean Skirt',
     description: 'Stunning multi-colored tiered maxi Caribbean skirt displaying blocks of red, blue, yellow, and white traditional Adire patterns.',
     price: 30000,
@@ -67,7 +67,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-24'),
   },
   {
-    id: 'demo-adire-jumpsuit',
+    id: 'adire-jumpsuit',
     name: 'Adire Crepe Jumpsuit',
     description: 'Elegant halter-neck wide-leg jumpsuit crafted in deep burgundy and white Adire patterns with a cinched elastic waist.',
     price: 38000,
@@ -80,7 +80,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-25'),
   },
   {
-    id: 'demo-adire-boubou-orange',
+    id: 'adire-boubou-orange',
     name: 'Adire Crepe 2in1 Backless Boubou Gown (Orange)',
     description: 'Flowy orange-and-white patterned boubou gown featuring a backless drape design, complete with a matching custom bralette.',
     price: 38000,
@@ -93,7 +93,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-08-26'),
   },
   {
-    id: 'demo-adire-boubou-pink',
+    id: 'adire-boubou-pink',
     name: 'Adire Crepe 2in1 Backless Boubou Gown (Pink)',
     description: 'Gorgeous pink-and-white patterned boubou gown featuring a dramatic backless drape design and matching custom bralette.',
     price: 38000,
@@ -107,7 +107,7 @@ export const DEMO_PRODUCTS: Product[] = [
   },
   // Handwoven Aso Oke Collections
   {
-    id: 'demo-asooke-short',
+    id: 'asooke-short',
     name: 'Aso Oke Short',
     description: 'Modern luxury handwoven striped Aso Oke shorts featuring front cargo pockets, an adjustable elastic drawstring waistband, and signature cultural tailoring.',
     price: 25000,
@@ -120,7 +120,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-09-25'),
   },
   {
-    id: 'demo-asooke-royal-agbada',
+    id: 'asooke-royal-agbada',
     name: 'Royal Heritage Aso Oke 3-Piece Agbada Set',
     description: 'Prestige handwoven Aso Oke agbada ensemble accented with intricate metallic gold embroidery, matching trousers, and signature fila cap.',
     price: 95000,
@@ -133,7 +133,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-09-26'),
   },
   {
-    id: 'demo-asooke-wrap-skirt-shawl',
+    id: 'asooke-wrap-skirt-shawl',
     name: 'Heritage Woven Aso Oke Wrap Skirt & Shawl',
     description: 'Timeless hand-loomed striped Aso Oke wrap skirt with an accompanying draped shoulder shawl, designed for ceremonial luxury and everyday regal elegance.',
     price: 55000,
@@ -146,7 +146,7 @@ export const DEMO_PRODUCTS: Product[] = [
     createdAt: new Date('2026-09-27'),
   },
   {
-    id: 'demo-asooke-iro-buba',
+    id: 'asooke-iro-buba',
     name: 'Modern Metallic Aso Oke Iro & Buba Set',
     description: 'Contemporary two-piece set combining a crisp handwoven Aso Oke wrapper with a modern relaxed-fit tailored blouse.',
     price: 75000,
@@ -160,5 +160,7 @@ export const DEMO_PRODUCTS: Product[] = [
   }
 ];
 
-export const DEMO_MESSAGES: CustomerMessage[] = [];
+// Alias for backwards compatibility
+export const DEMO_PRODUCTS: Product[] = STORE_PRODUCTS;
 
+export const DEMO_MESSAGES: CustomerMessage[] = [];

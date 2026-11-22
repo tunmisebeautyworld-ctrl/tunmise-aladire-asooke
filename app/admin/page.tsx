@@ -141,6 +141,15 @@ export default function AdminDashboard() {
     }
   }, [profile]);
 
+  // Clear orders for client fresh start
+  const handleClearOrders = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tunmise_orders');
+    }
+    setOrders([]);
+    toast.success('Orders cleared to 0. Ready for client handover.');
+  };
+
   // Handle Toggle Beads & Accessories Launch Status
   const handleToggleBeadsStatus = async () => {
     const nextStatus = settings.beadsAccessoriesStatus === 'coming_soon' ? 'active' : 'coming_soon';
@@ -872,6 +881,16 @@ export default function AdminDashboard() {
                   >
                     <FiRefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#c2410c]' : ''}`} />
                   </button>
+                  {orders.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearOrders}
+                      className="px-2.5 py-1 text-[11px] font-semibold text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg border border-gray-200 transition-all cursor-pointer"
+                      title="Clear test orders so client starts fresh"
+                    >
+                      Clear Orders to 0
+                    </button>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">Status updates automatically email the customer.</p>
               </div>
@@ -1137,7 +1156,12 @@ export default function AdminDashboard() {
               {filteredOrders.length === 0 && (
                 <div className="text-center py-24 bg-white rounded-2xl border border-gray-100">
                   <FiPackage size={36} className="mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm font-semibold text-gray-400">No orders matching this filter</p>
+                  <p className="text-sm font-semibold text-gray-500">
+                    {orderFilter === 'all' ? 'No customer orders yet' : 'No orders matching this filter'}
+                  </p>
+                  {orderFilter === 'all' && (
+                    <p className="text-xs text-gray-400 mt-1">Ready for client launch. Fresh orders will appear here automatically.</p>
+                  )}
                 </div>
               )}
             </div>
