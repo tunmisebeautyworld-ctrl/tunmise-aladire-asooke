@@ -121,46 +121,5 @@ export const DEMO_PRODUCTS: Product[] = [
   }
 ];
 
-export const DEMO_MESSAGES: CustomerMessage[] = [
-  {
-    id: 'demo-msg-1',
-    name: 'Olumide Bakare',
-    email: 'olumide@example.com',
-    phone: '+234 803 111 2222',
-    subject: 'Bespoke Agbada Measurement Details',
-    message: 'Hello, I just placed an order and wanted to attach my custom measurements for the Tunmise Classic Metallic Asooke Agbada Set. Please let me know if you need any adjustments.',
-    type: 'custom_measurement',
-    measurements: {
-      bust: '38"',
-      waist: '32"',
-      hips: '41"',
-      height: "5'11\"",
-      additionalDetails: 'Prefer the trousers to be loose around the ankles.',
-    },
-    status: 'unread',
-    createdAt: new Date('2026-08-27T14:30:00.000Z'),
-  },
-  {
-    id: 'demo-msg-2',
-    name: 'Chioma Nnaji',
-    email: 'chioma@example.com',
-    phone: '+234 812 345 6789',
-    subject: 'Custom Gold Thread Request',
-    message: 'Hi, is it possible to use rose gold embroidery threads for the Asooke wrappers instead of standard yellow gold? I have an upcoming wedding in December.',
-    type: 'bespoke_inquiry',
-    status: 'read',
-    createdAt: new Date('2026-08-26T09:15:00.000Z'),
-  },
-  {
-    id: 'demo-msg-3',
-    name: 'Fatima Yusuf',
-    email: 'fatima@example.com',
-    phone: '+234 905 555 4444',
-    subject: 'Delivery Timeline to Abuja',
-    message: 'Hello! If I order the Adire Crepe 2pcs Set today, how many days will it take to arrive in Garki, Abuja?',
-    type: 'general',
-    status: 'replied',
-    createdAt: new Date('2026-08-25T11:00:00.000Z'),
-  }
-];
+export const DEMO_MESSAGES: CustomerMessage[] = [];
 

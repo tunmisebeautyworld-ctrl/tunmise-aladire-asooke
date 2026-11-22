@@ -217,25 +217,29 @@ export default function CheckoutPage() {
         createdAt: new Date(),
       };
 
-      // 1. Dispatch immediate alert to Store Admin
-      fetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'bank_transfer_admin_alert',
-          order: createdOrderWithId,
-        }),
-      }).catch((e) => console.error('Admin notification error:', e));
-
-      // 2. Dispatch acknowledgment to customer
-      fetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'bank_transfer_customer_ack',
-          order: createdOrderWithId,
-        }),
-      }).catch((e) => console.error('Customer acknowledgment error:', e));
+      // 1. Dispatch immediate alert to Store Admin & Customer Acknowledgment
+      try {
+        await Promise.allSettled([
+          fetch('/api/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'bank_transfer_admin_alert',
+              order: createdOrderWithId,
+            }),
+          }),
+          fetch('/api/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'bank_transfer_customer_ack',
+              order: createdOrderWithId,
+            }),
+          }),
+        ]);
+      } catch (e) {
+        console.error('Email dispatch error:', e);
+      }
 
       clearCart();
       toast.success('Transfer submitted! Redirecting to your live order tracker...');
