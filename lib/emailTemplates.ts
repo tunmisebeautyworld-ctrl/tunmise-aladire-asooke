@@ -103,7 +103,7 @@ export function getOrderReceiptHtml(order: Order): string {
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #faf8f5; border-radius: 12px; padding: 18px 20px; margin-bottom: 26px; font-size: 13px;">
       <tr>
         <td style="padding: 4px 0; color: #71717a; width: 45%;">Order Number:</td>
-        <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.toUpperCase()}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; color: #71717a;">Payment Method:</td>
@@ -159,7 +159,7 @@ export function getOrderReceiptHtml(order: Order): string {
     </div>
   `;
 
-  return baseEmailWrapper(`Order Confirmation #${order.id.slice(0, 10).toUpperCase()}`, content);
+  return baseEmailWrapper(`Order Confirmation #${order.id.toUpperCase()}`, content);
 }
 
 // ─── 2. New Order Alert for Store Admin & Atelier ─────────────────────────────
@@ -228,7 +228,7 @@ export function getAdminNewOrderAlertHtml(order: Order): string {
     </div>
   `;
 
-  return baseEmailWrapper(`New Paid Order #${order.id.slice(0, 8).toUpperCase()}`, content);
+  return baseEmailWrapper(`New Paid Order #${order.id.toUpperCase()}`, content);
 }
 
 // ─── 3. Bespoke Measurement Confirmation for Customer ─────────────────────────
@@ -660,7 +660,7 @@ export function getOrderStatusUpdateHtml(order: Order, notes?: string): string {
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #f4efe6; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; font-size: 13px;">
       <tr>
         <td style="padding: 5px 0; color: #71717a; width: 45%;">Order Number:</td>
-        <td style="padding: 5px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+        <td style="padding: 5px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.toUpperCase()}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0; color: #71717a;">Current Status:</td>
@@ -701,7 +701,7 @@ export function getOrderStatusUpdateHtml(order: Order, notes?: string): string {
     </div>
   `;
 
-  return baseEmailWrapper(`Update on Order #${order.id.slice(0, 10).toUpperCase()} - ${statusInfo.title}`, content);
+  return baseEmailWrapper(`Update on Order #${order.id.toUpperCase()} - ${statusInfo.title}`, content);
 }
 
 // ─── 9. Admin Bank Transfer Payment Alert ─────────────────────────────────────
@@ -735,7 +735,7 @@ export function getAdminBankTransferAlertHtml(order: Order): string {
       </span>
       <h1 style="font-family: Georgia, serif; font-size: 24px; color: #18181b; margin: 12px 0 6px 0;">New Bank Transfer Payment Submitted</h1>
       <p style="margin: 0; font-size: 14px; color: #71717a;">
-        Customer ${order.customerInfo.name} has submitted proof of payment for Order #${order.id.slice(0, 10).toUpperCase()}.
+        Customer ${order.customerInfo.name} has submitted proof of payment for Order #${order.id.toUpperCase()}.
       </p>
     </div>
 
@@ -743,7 +743,7 @@ export function getAdminBankTransferAlertHtml(order: Order): string {
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #faf8f5; border-radius: 14px; padding: 20px; margin-bottom: 24px; font-size: 13px; border-left: 4px solid #d97706;">
       <tr>
         <td style="padding: 5px 0; color: #71717a; width: 40%;">Order Number:</td>
-        <td style="padding: 5px 0; font-weight: 700; color: #18181b; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+        <td style="padding: 5px 0; font-weight: 700; color: #18181b; font-family: monospace;">#${order.id.toUpperCase()}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0; color: #71717a;">Amount Claimed Paid:</td>
@@ -808,7 +808,7 @@ export function getAdminBankTransferAlertHtml(order: Order): string {
     </div>
   `;
 
-  return baseEmailWrapper(`Bank Transfer Submitted: Order #${order.id.slice(0, 10).toUpperCase()} (₦${(p.amountPaid || order.total).toLocaleString()})`, content);
+  return baseEmailWrapper(`Bank Transfer Submitted: Order #${order.id.toUpperCase()} (₦${(p.amountPaid || order.total).toLocaleString()})`, content);
 }
 
 // ─── 10. Customer Bank Transfer Acknowledgment ────────────────────────────────
@@ -842,7 +842,7 @@ export function getBankTransferCustomerAckHtml(order: Order): string {
       </span>
       <h1 style="font-family: Georgia, serif; font-size: 26px; color: #18181b; margin: 14px 0 6px 0;">We Have Received Your Payment Details</h1>
       <p style="margin: 0; font-size: 14px; color: #71717a;">
-        Dear ${order.customerInfo.name}, thank you for submitting your transfer details for Order #${order.id.slice(0, 10).toUpperCase()}.
+        Dear ${order.customerInfo.name}, thank you for submitting your transfer details for Order #${order.id.toUpperCase()}.
       </p>
     </div>
 
@@ -860,7 +860,7 @@ export function getBankTransferCustomerAckHtml(order: Order): string {
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #f4efe6; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; font-size: 13px;">
       <tr>
         <td style="padding: 4px 0; color: #71717a; width: 45%;">Order Number:</td>
-        <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.toUpperCase()}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; color: #71717a;">Sender Account Name:</td>
@@ -901,7 +901,7 @@ export function getBankTransferCustomerAckHtml(order: Order): string {
     </div>
   `;
 
-  return baseEmailWrapper(`Bank Transfer Details Received: Order #${order.id.slice(0, 10).toUpperCase()}`, content);
+  return baseEmailWrapper(`Bank Transfer Details Received: Order #${order.id.toUpperCase()}`, content);
 }
 
 

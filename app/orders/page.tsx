@@ -99,7 +99,7 @@ export default function OrdersPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-xs font-black text-[#18181b] bg-[#faf8f5] px-2.5 py-1 rounded-md border border-gray-200">
-                          #{order.id.slice(0, 8).toUpperCase()}
+                          #{order.id.toUpperCase()}
                         </span>
                         <span className="text-xs text-gray-400">{orderDate}</span>
                       </div>
@@ -151,7 +151,7 @@ export default function OrdersPage() {
                         Direct Bank Transfer ({order.paymentDetails?.senderBank || 'Lotus Bank'})
                       </span>
                       <span className="text-[10px] text-amber-800 font-mono">
-                        Ref: {order.paymentDetails?.transferReference || order.id.slice(0, 8)}
+                        Ref: {order.paymentDetails?.transferReference || order.id.toUpperCase()}
                       </span>
                     </div>
                   )}

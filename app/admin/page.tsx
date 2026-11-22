@@ -917,7 +917,7 @@ export default function AdminDashboard() {
                   }`}>
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-mono text-xs font-black text-[#18181b] bg-white border border-gray-200 px-2.5 py-1 rounded-lg">
-                        #{order.id.slice(0, 8).toUpperCase()}
+                        #{order.id.toUpperCase()}
                       </span>
                       <span className="text-xs text-gray-400">
                         {new Date(order.createdAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}

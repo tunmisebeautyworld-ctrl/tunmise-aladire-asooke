@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         await sendBrevoEmail({
           toEmail: order.customerInfo.email,
           toName: order.customerInfo.name,
-          subject: `Order Confirmation #${order.id.slice(0, 10).toUpperCase()} - Tunmise Aladire Asooke`,
+          subject: `Order Confirmation #${order.id.toUpperCase()} - Tunmise Aladire Asooke`,
           htmlContent: customerHtml,
         });
 
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         await sendBrevoEmail({
           toEmail: ADMIN_EMAIL,
           toName: 'Tunmise Store Admin',
-          subject: `New Paid Order #${order.id.slice(0, 8).toUpperCase()} - ₦${order.total.toLocaleString()} from ${order.customerInfo.name}`,
+          subject: `New Paid Order #${order.id.toUpperCase()} - ₦${order.total.toLocaleString()} from ${order.customerInfo.name}`,
           htmlContent: adminHtml,
         });
 
@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
         await sendBrevoEmail({
           toEmail: order.customerInfo.email,
           toName: order.customerInfo.name,
-          subject: `Order Update: #${order.id.slice(0, 8).toUpperCase()} is now ${statusLabel} - Tunmise Aladire Asooke`,
+          subject: `Order Update: #${order.id.toUpperCase()} is now ${statusLabel} - Tunmise Aladire Asooke`,
           htmlContent: statusHtml,
         });
 
@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
         await sendBrevoEmail({
           toEmail: ADMIN_EMAIL,
           toName: 'Tunmise Store Admin',
-          subject: `ACTION REQUIRED: Bank Transfer Payment Pending - Order #${order.id.slice(0, 8).toUpperCase()} (₦${amount.toLocaleString()}) from ${sender}`,
+          subject: `ACTION REQUIRED: Bank Transfer Payment Pending - Order #${order.id.toUpperCase()} (₦${amount.toLocaleString()}) from ${sender}`,
           htmlContent: adminHtml,
         });
 
@@ -280,7 +280,7 @@ export async function POST(req: NextRequest) {
         await sendBrevoEmail({
           toEmail: order.customerInfo.email,
           toName: order.customerInfo.name,
-          subject: `Payment Details Received: Order #${order.id.slice(0, 8).toUpperCase()} - Tunmise Aladire Asooke`,
+          subject: `Payment Details Received: Order #${order.id.toUpperCase()} - Tunmise Aladire Asooke`,
           htmlContent: customerHtml,
         });
 

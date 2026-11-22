@@ -201,7 +201,7 @@ function OrderTrackerContent() {
                     Order Tracking Status
                   </span>
                   <h2 className="font-serif text-xl sm:text-3xl font-bold tracking-tight">
-                    Order #{order.id.slice(0, 10).toUpperCase()}
+                    Order #{order.id.toUpperCase()}
                   </h2>
                   <p className="text-xs text-white/60 mt-1">
                     Placed on {new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })} &bull;{' '}
