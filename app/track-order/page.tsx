@@ -21,19 +21,19 @@ import {
 
 const STAGES = [
   {
+    key: 'pending',
+    title: 'Order Received',
+    description: 'Payment details submitted and pending verification',
+  },
+  {
     key: 'confirmed',
-    title: 'Order Confirmed',
-    description: 'Payment verified and fabrics prepared for atelier queue',
+    title: 'Payment Confirmed',
+    description: 'Payment verified and fabrics queued for atelier cutting',
   },
   {
     key: 'in_production',
     title: 'Atelier Tailoring',
     description: 'Artisans hand-cutting and sewing your traditional garments',
-  },
-  {
-    key: 'packaged',
-    title: 'Quality Check & Packed',
-    description: 'Garments inspected, steamed, and boxed with care',
   },
   {
     key: 'shipped',
@@ -50,11 +50,11 @@ const STAGES = [
 function getStageIndex(status: Order['status']): number {
   switch (status) {
     case 'pending':
-      return 0;
-    case 'confirmed':
       return 1;
-    case 'in_production':
+    case 'confirmed':
       return 2;
+    case 'in_production':
+      return 3;
     case 'shipped':
       return 4;
     case 'delivered':
@@ -167,7 +167,7 @@ function OrderTrackerContent() {
           <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
             <FiInfo size={13} className="text-[#c2410c] flex-shrink-0" />
             <span>
-              Your order reference was included in your confirmation email and Paystack receipt.
+              Your order reference was included in your confirmation email and bank transfer payment screen.
             </span>
           </div>
         </div>
@@ -204,7 +204,9 @@ function OrderTrackerContent() {
                     Order #{order.id.slice(0, 10).toUpperCase()}
                   </h2>
                   <p className="text-xs text-white/60 mt-1">
-                    Placed on {new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })} &bull; Paystack Ref: {order.paystackRef || 'Verified'}
+                    Placed on {new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })} &bull;{' '}
+                    {order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Paystack'}:{' '}
+                    <span className="font-mono text-white/80">{order.paymentDetails?.transferReference || order.paymentDetails?.paymentReference || order.paystackRef || 'Verified'}</span>
                   </p>
                 </div>
 
@@ -217,12 +219,14 @@ function OrderTrackerContent() {
                         ? 'bg-purple-500 text-white'
                         : order.status === 'in_production'
                         ? 'bg-[#c2410c] text-white'
+                        : order.status === 'confirmed'
+                        ? 'bg-blue-600 text-white'
                         : order.status === 'cancelled'
                         ? 'bg-red-500 text-white'
                         : 'bg-amber-400 text-black'
                     }`}
                   >
-                    {order.status.replace('_', ' ')}
+                    {order.status === 'pending' ? 'Verification Pending' : order.status.replace('_', ' ')}
                   </span>
                 </div>
               </div>
@@ -240,7 +244,7 @@ function OrderTrackerContent() {
                       <div
                         className="h-full bg-gradient-to-r from-[#d97706] to-[#c2410c] transition-all duration-700"
                         style={{
-                          width: `${Math.min(100, Math.max(0, ((currentStageIdx - 0.5) / 4) * 100))}%`,
+                          width: `${Math.min(100, Math.max(0, ((currentStageIdx - 1) / (STAGES.length - 1)) * 100))}%`,
                         }}
                       />
                     </div>
@@ -248,7 +252,7 @@ function OrderTrackerContent() {
                     {/* Step Nodes */}
                     <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 sm:gap-2 relative z-10">
                       {STAGES.map((stage, idx) => {
-                        const isDone = currentStageIdx > idx;
+                        const isDone = currentStageIdx > idx + 1;
                         const isCurrent = currentStageIdx === idx + 1;
 
                         return (
@@ -287,6 +291,41 @@ function OrderTrackerContent() {
                 </div>
               )}
             </div>
+
+            {/* Pending Payment Verification Notice Banner */}
+            {order.status === 'pending' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-7 space-y-3">
+                <div className="flex items-center gap-2 text-amber-900">
+                  <FiClock size={20} className="text-[#d97706]" />
+                  <h3 className="font-serif text-lg font-bold">
+                    Payment Verification in Progress
+                  </h3>
+                </div>
+                <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
+                  Thank you for submitting your transfer details. Our accounts team is verifying your payment with the bank. Once confirmed, your official order receipt will be sent to <span className="font-bold">{order.customerInfo.email}</span> and your garments will be queued for atelier cutting.
+                </p>
+                {order.paymentDetails && (
+                  <div className="bg-white/90 rounded-2xl p-4 border border-amber-200/60 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Sender Name</span>
+                      <span className="font-bold text-gray-900">{order.paymentDetails.senderName}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Amount Paid</span>
+                      <span className="font-bold text-[#c2410c]">₦{order.paymentDetails.amountPaid?.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Sending Bank</span>
+                      <span className="font-bold text-gray-900">{order.paymentDetails.senderBank}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Payment Reference</span>
+                      <span className="font-mono font-bold text-gray-900">{order.paymentDetails.transferReference || order.paymentDetails.paymentReference || 'N/A'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Courier & Dispatch Notes (If Available) */}
             {order.deliveryNotes && (
@@ -380,7 +419,9 @@ function OrderTrackerContent() {
 
                 {/* Subtotal & Total */}
                 <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-sm">
-                  <span className="font-semibold text-gray-500">Total Paid (Paystack):</span>
+                  <span className="font-semibold text-gray-500">
+                    {order.paymentMethod === 'bank_transfer' ? 'Total Payable (Bank Transfer):' : 'Total Paid (Paystack):'}
+                  </span>
                   <span className="font-extrabold text-xl text-[#c2410c]">
                     ₦{order.total.toLocaleString()}
                   </span>

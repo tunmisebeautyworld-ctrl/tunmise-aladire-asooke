@@ -13,9 +13,10 @@ import {
   updateMessageStatus,
   getStoreSettings,
   updateStoreSettings,
+  DEFAULT_BANK_DETAILS,
 } from '@/lib/firestore';
 import { sendEmailBroadcast } from '@/lib/email';
-import type { Product, Order, CustomerMessage, StoreSettings } from '@/types';
+import type { Product, Order, CustomerMessage, StoreSettings, BankDetails } from '@/types';
 import Link from 'next/link';
 import {
   FiPackage,
@@ -32,6 +33,8 @@ import {
   FiMinus,
   FiExternalLink,
   FiTruck,
+  FiCheckCircle,
+  FiCreditCard,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -78,9 +81,14 @@ export default function AdminDashboard() {
   const [emailImage, setEmailImage] = useState('');
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
-  // Store Settings (Category Launch Controls)
-  const [settings, setSettings] = useState<StoreSettings>({ beadsAccessoriesStatus: 'coming_soon' });
+  // Store Settings (Category Launch Controls & Bank Details)
+  const [settings, setSettings] = useState<StoreSettings>({
+    beadsAccessoriesStatus: 'coming_soon',
+    bankDetails: DEFAULT_BANK_DETAILS,
+  });
   const [updatingSettings, setUpdatingSettings] = useState(false);
+  const [bankForm, setBankForm] = useState<BankDetails>(DEFAULT_BANK_DETAILS);
+  const [savingBank, setSavingBank] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -102,7 +110,10 @@ export default function AdminDashboard() {
           setProducts(p);
           setOrders(o);
           setMessages(m);
-          if (s) setSettings(s);
+          if (s) {
+            setSettings(s);
+            if (s.bankDetails) setBankForm(s.bankDetails);
+          }
           if (m.length > 0) setSelectedMessage(m[0]);
         })
         .catch(() => {
@@ -128,6 +139,60 @@ export default function AdminDashboard() {
       toast.error('Failed to update category status');
     } finally {
       setUpdatingSettings(false);
+    }
+  };
+
+  // Handle Save Bank Account Details
+  const handleSaveBankDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBank(true);
+    try {
+      await updateStoreSettings({ bankDetails: bankForm });
+      setSettings((prev) => ({ ...prev, bankDetails: bankForm }));
+      toast.success('Official bank account details saved! Checkout page will now display these details.');
+    } catch {
+      toast.error('Failed to update bank details');
+    } finally {
+      setSavingBank(false);
+    }
+  };
+
+  // Handle Confirm Bank Transfer Payment & Dispatch Receipt to Customer
+  const handleConfirmBankPayment = async (order: Order) => {
+    setUpdatingOrderId(order.id);
+    try {
+      const notes = orderNotes[order.id] ?? order.deliveryNotes ?? 'Bank transfer verified by store admin';
+      await updateOrderStatus(order.id, 'confirmed', notes);
+
+      const updatedOrder: Order = {
+        ...order,
+        status: 'confirmed',
+        deliveryNotes: notes,
+      };
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? updatedOrder : o))
+      );
+
+      // Automatically dispatch full official itemized receipt to customer email
+      if (order.customerInfo?.email) {
+        fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'order_confirmation',
+            order: updatedOrder,
+          }),
+        }).catch((err) => console.error('Failed to dispatch receipt email:', err));
+
+        toast.success(`Payment verified! Official itemized receipt emailed to ${order.customerInfo.email}`);
+      } else {
+        toast.success('Order status updated to confirmed');
+      }
+    } catch {
+      toast.error('Failed to confirm payment');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -393,6 +458,97 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            {/* Bank Account Settings: Official Transfer Account */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <FiCreditCard className="text-[#c2410c]" size={20} />
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-[#1e1b4b]">
+                      Store Bank Account Settings (Direct Transfer Checkout)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Customers will see these exact account details on the checkout page when paying via bank transfer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveBankDetails} className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={bankForm.bankName}
+                    onChange={(e) => setBankForm((b) => ({ ...b, bankName: e.target.value }))}
+                    placeholder="e.g. Moniepoint MFB"
+                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={bankForm.accountName}
+                    onChange={(e) => setBankForm((b) => ({ ...b, accountName: e.target.value }))}
+                    placeholder="e.g. Tunmise Aladire Asooke"
+                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    Account Number (NUBAN)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={bankForm.accountNumber}
+                    onChange={(e) => setBankForm((b) => ({ ...b, accountNumber: e.target.value }))}
+                    placeholder="e.g. 8239014820"
+                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] font-mono font-bold"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    Transfer Instructions (Displayed to customers)
+                  </label>
+                  <input
+                    type="text"
+                    value={bankForm.instructions || ''}
+                    onChange={(e) => setBankForm((b) => ({ ...b, instructions: e.target.value }))}
+                    placeholder="e.g. Please use your Full Name as narration when making the transfer."
+                    className="w-full text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706]"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    disabled={savingBank}
+                    className="w-full bg-[#1e1b4b] hover:bg-[#312e81] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {savingBank ? (
+                      <>
+                        <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Bank Account Details'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
             {/* Split Dashboard widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column: Recent Orders */}
@@ -628,10 +784,21 @@ export default function AdminDashboard() {
                       <span className="text-xs text-gray-400">
                         {new Date(order.createdAt).toLocaleString()}
                       </span>
-                      {order.paystackRef && (
-                        <span className="text-[11px] text-gray-400 font-mono">
-                          Ref: {order.paystackRef}
+                      {order.paymentMethod === 'bank_transfer' ? (
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${
+                          order.status === 'pending'
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        }`}>
+                          <FiCreditCard size={11} />
+                          {order.status === 'pending' ? 'Bank Transfer (Awaiting Verification)' : 'Bank Transfer (Confirmed)'}
                         </span>
+                      ) : (
+                        order.paystackRef && (
+                          <span className="text-[11px] text-gray-400 font-mono">
+                            Ref: {order.paystackRef}
+                          </span>
+                        )
                       )}
                     </div>
 
@@ -649,18 +816,40 @@ export default function AdminDashboard() {
                   {/* Order Details Body */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Customer & Destination */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Customer & Delivery</p>
-                      <p className="font-bold text-sm text-[#1e1b4b]">{order.customerInfo?.name}</p>
-                      <p className="text-xs text-gray-600 font-medium">
-                        {order.customerInfo?.email}
-                      </p>
-                      <p className="text-xs text-gray-600 font-medium">
-                        {order.customerInfo?.phone}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed bg-[#faf8f5] p-2.5 rounded-lg border border-[#f4efe6]">
-                        {order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state}
-                      </p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Customer & Delivery</p>
+                        <p className="font-bold text-sm text-[#1e1b4b] mt-0.5">{order.customerInfo?.name}</p>
+                        <p className="text-xs text-gray-600 font-medium">
+                          {order.customerInfo?.email}
+                        </p>
+                        <p className="text-xs text-gray-600 font-medium">
+                          {order.customerInfo?.phone}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1 leading-relaxed bg-[#faf8f5] p-2.5 rounded-lg border border-[#f4efe6]">
+                          {order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state}
+                        </p>
+                      </div>
+
+                      {/* Bank Transfer Details Box */}
+                      {order.paymentMethod === 'bank_transfer' && (
+                        <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 space-y-1.5 text-xs">
+                          <p className="font-bold text-[10px] uppercase tracking-wider text-amber-900 flex items-center gap-1">
+                            <FiCreditCard size={12} /> Bank Transfer Submitted
+                          </p>
+                          <div className="space-y-1 text-[11px] text-gray-800">
+                            <p><span className="text-gray-500">Sender:</span> <strong>{order.paymentDetails?.senderName || order.customerInfo?.name}</strong></p>
+                            <p><span className="text-gray-500">Amount Paid:</span> <strong className="text-[#c2410c]">₦{(order.paymentDetails?.amountPaid || order.total).toLocaleString()}</strong></p>
+                            <p><span className="text-gray-500">Bank Used:</span> <strong>{order.paymentDetails?.senderBank || 'Direct Transfer'}</strong></p>
+                            {order.paymentDetails?.transferReference && (
+                              <p><span className="text-gray-500">Ref / Remark:</span> <code className="font-mono">{order.paymentDetails.transferReference}</code></p>
+                            )}
+                            {order.paymentDetails?.paymentNotes && (
+                              <p className="italic text-gray-600 text-[10px]">&ldquo;{order.paymentDetails.paymentNotes}&rdquo;</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Purchased Items List */}
@@ -690,6 +879,27 @@ export default function AdminDashboard() {
                     {/* Status Management & Delivery Notes */}
                     <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200/60 flex flex-col justify-between">
                       <div className="space-y-2">
+                        {/* 1-Click Bank Payment Confirmation Button */}
+                        {order.status === 'pending' && (
+                          <button
+                            type="button"
+                            disabled={updatingOrderId === order.id}
+                            onClick={() => handleConfirmBankPayment(order)}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                          >
+                            {updatingOrderId === order.id ? (
+                              <>
+                                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                                Confirming & Sending Receipt...
+                              </>
+                            ) : (
+                              <>
+                                <FiCheckCircle size={14} /> Confirm Payment & Dispatch Receipt
+                              </>
+                            )}
+                          </button>
+                        )}
+
                         <label className="block text-[11px] uppercase font-bold text-gray-500 tracking-wider">
                           Order Status (Notifies Customer)
                         </label>
@@ -749,7 +959,7 @@ export default function AdminDashboard() {
                           </>
                         ) : (
                           <>
-                            <FiTruck size={13} /> Update & Send Email
+                            <FiTruck size={13} /> Update Status & Send Email
                           </>
                         )}
                       </button>

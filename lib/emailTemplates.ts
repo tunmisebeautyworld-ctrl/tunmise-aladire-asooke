@@ -106,8 +106,14 @@ export function getOrderReceiptHtml(order: Order): string {
         <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
       </tr>
       <tr>
+        <td style="padding: 4px 0; color: #71717a;">Payment Method:</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 500;">
+          ${order.paymentMethod === 'bank_transfer' ? 'Direct Bank Transfer' : 'Card Payment (Paystack)'}
+        </td>
+      </tr>
+      <tr>
         <td style="padding: 4px 0; color: #71717a;">Payment Reference:</td>
-        <td style="padding: 4px 0; color: #18181b; font-weight: 500; font-family: monospace;">${order.paystackRef}</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 500; font-family: monospace;">${order.paystackRef || order.paymentDetails?.transferReference || 'Bank Transfer Verified'}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; color: #71717a;">Status:</td>
@@ -662,4 +668,205 @@ export function getOrderStatusUpdateHtml(order: Order, notes?: string): string {
 
   return baseEmailWrapper(`Update on Order #${order.id.slice(0, 10).toUpperCase()} - ${statusInfo.title}`, content);
 }
+
+// ─── 9. Admin Bank Transfer Payment Alert ─────────────────────────────────────
+
+export function getAdminBankTransferAlertHtml(order: Order): string {
+  const p = order.paymentDetails || {};
+  const itemsRows = order.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6;">
+          <p style="margin: 0; font-size: 13px; font-weight: 600; color: #18181b;">${item.product.name}</p>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: #71717a;">
+            Size: ${item.selectedSize} &bull; Color: ${item.selectedColor.split('|')[0]}
+          </p>
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: center; font-size: 13px; color: #18181b;">
+          Qty: ${item.quantity}
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: right; font-size: 13px; font-weight: 600; color: #18181b;">
+          &#8358;${(item.product.price * item.quantity).toLocaleString()}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  const content = `
+    <div style="margin-bottom: 24px;">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #d97706; background-color: rgba(217, 119, 6, 0.1); padding: 5px 12px; border-radius: 20px; display: inline-block;">
+        Payment Verification Required
+      </span>
+      <h1 style="font-family: Georgia, serif; font-size: 24px; color: #18181b; margin: 12px 0 6px 0;">New Bank Transfer Payment Submitted</h1>
+      <p style="margin: 0; font-size: 14px; color: #71717a;">
+        Customer ${order.customerInfo.name} has submitted proof of payment for Order #${order.id.slice(0, 10).toUpperCase()}.
+      </p>
+    </div>
+
+    <!-- Payment Details Box -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #faf8f5; border-radius: 14px; padding: 20px; margin-bottom: 24px; font-size: 13px; border-left: 4px solid #d97706;">
+      <tr>
+        <td style="padding: 5px 0; color: #71717a; width: 40%;">Order Number:</td>
+        <td style="padding: 5px 0; font-weight: 700; color: #18181b; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Amount Claimed Paid:</td>
+        <td style="padding: 5px 0; font-weight: 800; font-size: 16px; color: #c2410c;">
+          &#8358;${(p.amountPaid || order.total).toLocaleString()}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Sender Account Name:</td>
+        <td style="padding: 5px 0; font-weight: 700; color: #18181b;">${p.senderName || order.customerInfo.name}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Sending Bank:</td>
+        <td style="padding: 5px 0; font-weight: 600; color: #18181b;">${p.senderBank || 'Not specified'}</td>
+      </tr>
+      ${p.transferReference ? `
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Transfer Reference / Remarks:</td>
+        <td style="padding: 5px 0; font-weight: 600; color: #18181b; font-family: monospace;">${p.transferReference}</td>
+      </tr>` : ''}
+      ${p.paymentNotes ? `
+      <tr>
+        <td style="padding: 5px 0; color: #71717a;">Customer Notes:</td>
+        <td style="padding: 5px 0; color: #18181b; font-style: italic;">&ldquo;${p.paymentNotes}&rdquo;</td>
+      </tr>` : ''}
+    </table>
+
+    <!-- Customer Contact Details -->
+    <div style="background-color: #ffffff; border: 1px solid #f4efe6; border-radius: 12px; padding: 18px; margin-bottom: 24px; font-size: 13px;">
+      <h4 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #71717a;">
+        Customer Information & Delivery Destination
+      </h4>
+      <p style="margin: 0; line-height: 1.6; color: #18181b;">
+        <strong>${order.customerInfo.name}</strong><br>
+        Email: ${order.customerInfo.email}<br>
+        Phone: ${order.customerInfo.phone}<br>
+        Address: ${order.customerInfo.address}, ${order.customerInfo.city}, ${order.customerInfo.state}
+      </p>
+    </div>
+
+    <!-- Items Section -->
+    <h3 style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #71717a; margin: 0 0 10px 0;">
+      Garments Ordered
+    </h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px; border-collapse: collapse;">
+      ${itemsRows}
+      <tr>
+        <td colspan="2" style="padding-top: 14px; font-size: 14px; font-weight: 700; color: #18181b;">Order Total</td>
+        <td style="padding-top: 14px; font-size: 16px; font-weight: 700; color: #c2410c; text-align: right;">
+          &#8358;${order.total.toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <div style="text-align: center; margin-top: 26px;">
+      <a href="${STORE_URL}/admin" style="display: inline-block; background-color: #1e1b4b; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">
+        Confirm Payment in Admin Dashboard
+      </a>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #71717a;">
+        Once confirmed, the customer will automatically receive their official itemized receipt by email.
+      </p>
+    </div>
+  `;
+
+  return baseEmailWrapper(`Bank Transfer Submitted: Order #${order.id.slice(0, 10).toUpperCase()} (₦${(p.amountPaid || order.total).toLocaleString()})`, content);
+}
+
+// ─── 10. Customer Bank Transfer Acknowledgment ────────────────────────────────
+
+export function getBankTransferCustomerAckHtml(order: Order): string {
+  const p = order.paymentDetails || {};
+  const itemsRows = order.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6;">
+          <p style="margin: 0; font-size: 13px; font-weight: 600; color: #18181b;">${item.product.name}</p>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: #71717a;">
+            Size: ${item.selectedSize} &bull; Color: ${item.selectedColor.split('|')[0]}
+          </p>
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: center; font-size: 13px; color: #18181b;">
+          Qty: ${item.quantity}
+        </td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #f4efe6; text-align: right; font-size: 13px; font-weight: 600; color: #18181b;">
+          &#8358;${(item.product.price * item.quantity).toLocaleString()}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 28px;">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #d97706; background-color: rgba(217, 119, 6, 0.1); padding: 5px 14px; border-radius: 20px; display: inline-block;">
+        Payment Verification in Progress
+      </span>
+      <h1 style="font-family: Georgia, serif; font-size: 26px; color: #18181b; margin: 14px 0 6px 0;">We Have Received Your Payment Details</h1>
+      <p style="margin: 0; font-size: 14px; color: #71717a;">
+        Dear ${order.customerInfo.name}, thank you for submitting your transfer details for Order #${order.id.slice(0, 10).toUpperCase()}.
+      </p>
+    </div>
+
+    <!-- Verification Info Notice -->
+    <div style="background-color: #faf8f5; border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left;">
+      <p style="margin: 0 0 10px 0; font-size: 13px; color: #18181b; line-height: 1.6;">
+        Our atelier finance team is currently cross-referencing your transfer of <strong>&#8358;${(p.amountPaid || order.total).toLocaleString()}</strong>${p.senderBank ? ` from <strong>${p.senderBank}</strong>` : ''}.
+      </p>
+      <p style="margin: 0; font-size: 13px; color: #52525b; line-height: 1.6;">
+        Once confirmed (typically within 15–30 minutes during business hours), you will automatically receive an <strong>official itemized receipt</strong>, and your garments will immediately enter our atelier cutting queue.
+      </p>
+    </div>
+
+    <!-- Submitted Details Box -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #f4efe6; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; font-size: 13px;">
+      <tr>
+        <td style="padding: 4px 0; color: #71717a; width: 45%;">Order Number:</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 600; font-family: monospace;">#${order.id.slice(0, 10).toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; color: #71717a;">Sender Account Name:</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 600;">${p.senderName || order.customerInfo.name}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; color: #71717a;">Amount Transferred:</td>
+        <td style="padding: 4px 0; color: #c2410c; font-weight: 700;">&#8358;${(p.amountPaid || order.total).toLocaleString()}</td>
+      </tr>
+      ${p.senderBank ? `
+      <tr>
+        <td style="padding: 4px 0; color: #71717a;">Sending Bank:</td>
+        <td style="padding: 4px 0; color: #18181b; font-weight: 500;">${p.senderBank}</td>
+      </tr>` : ''}
+    </table>
+
+    <!-- Items Section -->
+    <h3 style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #71717a; margin: 0 0 10px 0;">
+      Pieces in This Order
+    </h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px; border-collapse: collapse;">
+      ${itemsRows}
+      <tr>
+        <td colspan="2" style="padding-top: 14px; font-size: 14px; font-weight: 700; color: #18181b;">Order Total</td>
+        <td style="padding-top: 14px; font-size: 16px; font-weight: 700; color: #c2410c; text-align: right;">
+          &#8358;${order.total.toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <div style="text-align: center; margin-top: 28px;">
+      <a href="${STORE_URL}/track-order?orderId=${order.id}" style="display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">
+        Track Order Status Live
+      </a>
+      <p style="margin: 12px 0 0 0; font-size: 12px; color: #71717a;">
+        Need to send transfer screenshot or speak with our atelier? Reach us on WhatsApp or via our <a href="${STORE_URL}/contact" style="color: #c2410c; text-decoration: underline;">concierge desk</a>.
+      </p>
+    </div>
+  `;
+
+  return baseEmailWrapper(`Bank Transfer Details Received: Order #${order.id.slice(0, 10).toUpperCase()}`, content);
+}
+
 

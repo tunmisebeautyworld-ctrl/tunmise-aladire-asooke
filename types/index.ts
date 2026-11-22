@@ -20,6 +20,23 @@ export interface CartItem {
   selectedColor: string;
 }
 
+export interface BankDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  instructions?: string;
+}
+
+export interface PaymentDetails {
+  senderName?: string;
+  amountPaid?: number;
+  senderBank?: string;
+  transferReference?: string;
+  paymentReference?: string;
+  paymentDate?: string;
+  paymentNotes?: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -34,7 +51,9 @@ export interface Order {
     city: string;
     state: string;
   };
-  paystackRef: string;
+  paystackRef?: string;
+  paymentMethod?: 'bank_transfer' | 'paystack';
+  paymentDetails?: PaymentDetails;
   createdAt: Date;
   deliveryNotes?: string;
   trackingNumber?: string;
@@ -70,5 +89,6 @@ export interface CustomerMessage {
 
 export interface StoreSettings {
   beadsAccessoriesStatus: 'coming_soon' | 'active';
+  bankDetails?: BankDetails;
 }
 

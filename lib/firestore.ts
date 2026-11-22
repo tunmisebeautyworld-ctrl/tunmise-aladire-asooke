@@ -13,7 +13,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product, Order, UserProfile, CustomerMessage, StoreSettings } from '@/types';
+import type { Product, Order, UserProfile, CustomerMessage, StoreSettings, BankDetails } from '@/types';
 import { DEMO_MESSAGES, DEMO_PRODUCTS } from './demoData';
 
 export function isFirebaseConfigured(): boolean {
@@ -347,8 +347,16 @@ export async function updateMessageStatus(
 
 // ─── Store Settings ───────────────────────────────────────────────────────────
 
+export const DEFAULT_BANK_DETAILS: BankDetails = {
+  bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'Moniepoint MFB',
+  accountName: process.env.NEXT_PUBLIC_ACCOUNT_NAME || 'Tunmise Aladire Asooke',
+  accountNumber: process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || '8239014820',
+  instructions: 'Please transfer the exact order amount and use your Full Name as the transaction remark/narration.',
+};
+
 const DEFAULT_SETTINGS: StoreSettings = {
   beadsAccessoriesStatus: 'coming_soon',
+  bankDetails: DEFAULT_BANK_DETAILS,
 };
 
 export async function getStoreSettings(): Promise<StoreSettings> {

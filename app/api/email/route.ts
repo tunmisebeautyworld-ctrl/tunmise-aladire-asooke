@@ -9,6 +9,8 @@ import {
   getAdminContactAlertHtml,
   getBeadsVipConfirmationHtml,
   getOrderStatusUpdateHtml,
+  getAdminBankTransferAlertHtml,
+  getBankTransferCustomerAckHtml,
   type BespokeData,
 } from '@/lib/emailTemplates';
 import type { Order } from '@/types';
@@ -226,6 +228,45 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: 'Order status notification dispatched' });
+      }
+
+      // ─── 7. Bank Transfer Admin Alert ───
+      case 'bank_transfer_admin_alert': {
+        const order = body.order as Order;
+        if (!order || !order.id) {
+          return NextResponse.json({ error: 'Missing order details' }, { status: 400 });
+        }
+
+        const adminHtml = getAdminBankTransferAlertHtml(order);
+        const amount = order.paymentDetails?.amountPaid || order.total;
+        const sender = order.paymentDetails?.senderName || order.customerInfo.name;
+
+        await sendBrevoEmail({
+          toEmail: ADMIN_EMAIL,
+          toName: 'Tunmise Store Admin',
+          subject: `ACTION REQUIRED: Bank Transfer Payment Pending - Order #${order.id.slice(0, 8).toUpperCase()} (₦${amount.toLocaleString()}) from ${sender}`,
+          htmlContent: adminHtml,
+        });
+
+        return NextResponse.json({ success: true, message: 'Bank transfer alert sent to admin' });
+      }
+
+      // ─── 8. Bank Transfer Customer Acknowledgment ───
+      case 'bank_transfer_customer_ack': {
+        const order = body.order as Order;
+        if (!order || !order.customerInfo?.email) {
+          return NextResponse.json({ error: 'Missing customer email' }, { status: 400 });
+        }
+
+        const customerHtml = getBankTransferCustomerAckHtml(order);
+        await sendBrevoEmail({
+          toEmail: order.customerInfo.email,
+          toName: order.customerInfo.name,
+          subject: `Payment Details Received: Order #${order.id.slice(0, 8).toUpperCase()} - Tunmise Aladire Asooke`,
+          htmlContent: customerHtml,
+        });
+
+        return NextResponse.json({ success: true, message: 'Acknowledgment sent to customer' });
       }
 
       default:
