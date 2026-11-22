@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getOrderById } from '@/lib/firestore';
+import { getOrderById, syncLocalOrdersToFirestore } from '@/lib/firestore';
 import type { Order } from '@/types';
 import {
   FiSearch,
@@ -101,6 +101,7 @@ function OrderTrackerContent() {
   };
 
   useEffect(() => {
+    syncLocalOrdersToFirestore();
     if (initialOrderId) {
       performLookup(initialOrderId);
     }

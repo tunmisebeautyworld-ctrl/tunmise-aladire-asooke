@@ -14,6 +14,7 @@ import {
   getStoreSettings,
   updateStoreSettings,
   DEFAULT_BANK_DETAILS,
+  syncLocalOrdersToFirestore,
 } from '@/lib/firestore';
 import { sendEmailBroadcast } from '@/lib/email';
 import type { Product, Order, CustomerMessage, StoreSettings, BankDetails } from '@/types';
@@ -108,6 +109,7 @@ export default function AdminDashboard() {
   const fetchDashboardData = async (showToast = false) => {
     try {
       setRefreshing(true);
+      await syncLocalOrdersToFirestore();
       const [p, o, m, s] = await Promise.all([
         getProducts(),
         getAllOrders(),

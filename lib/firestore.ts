@@ -184,6 +184,33 @@ export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>): Promis
   return orderId;
 }
 
+export async function syncLocalOrdersToFirestore(): Promise<void> {
+  if (typeof window === 'undefined' || !isFirebaseConfigured()) return;
+  try {
+    const saved = localStorage.getItem('tunmise_orders');
+    if (!saved) return;
+    const localOrders: Order[] = JSON.parse(saved);
+    if (!Array.isArray(localOrders) || localOrders.length === 0) return;
+
+    for (const order of localOrders) {
+      if (order && order.id) {
+        const cleanOrder = JSON.parse(JSON.stringify(order));
+        await setDoc(
+          doc(db, 'orders', order.id),
+          {
+            ...cleanOrder,
+            id: order.id,
+            createdAt: order.createdAt ? new Date(order.createdAt) : serverTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+    }
+  } catch (e) {
+    console.warn('Auto-sync local orders error:', e);
+  }
+}
+
 export async function getOrderById(orderId: string): Promise<Order | null> {
   const cleanId = orderId.trim().replace(/^#/, '');
 
