@@ -50,9 +50,8 @@ async function sendBrevoEmail({ toEmail, toName, subject, htmlContent, replyTo }
     htmlContent,
   };
 
-  if (replyTo) {
-    payload.replyTo = replyTo;
-  }
+  // Always set Reply-To so customer replies land in the admin Gmail inbox
+  payload.replyTo = replyTo || { email: ADMIN_EMAIL, name: BREVO_SENDER_NAME };
 
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
