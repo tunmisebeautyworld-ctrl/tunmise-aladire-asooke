@@ -17,13 +17,35 @@ import type { Product, Order, UserProfile, CustomerMessage, StoreSettings, BankD
 import { DEMO_MESSAGES, DEMO_PRODUCTS } from './demoData';
 
 export function isFirebaseConfigured(): boolean {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBkc_F8XVYxD58UtIF4O6amVAxvR3wzvyA';
   return (
     apiKey !== undefined &&
     apiKey !== '' &&
     apiKey !== 'YOUR_API_KEY' &&
     apiKey !== 'your_firebase_api_key'
   );
+}
+
+export function parseFirestoreDate(val: unknown): Date {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('toDate' in val && typeof (val as { toDate: () => Date }).toDate === 'function') {
+      try {
+        return (val as { toDate: () => Date }).toDate();
+      } catch {
+        // fallback
+      }
+    }
+    if ('seconds' in val && typeof (val as { seconds: number }).seconds === 'number') {
+      return new Date((val as { seconds: number }).seconds * 1000);
+    }
+  }
+  if (typeof val === 'string' || typeof val === 'number') {
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return new Date();
 }
 
 // ─── Products ─────────────────────────────────────────────────────────────────
@@ -166,7 +188,12 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     try {
       const snap = await getDoc(doc(db, 'orders', cleanId));
       if (snap.exists()) {
-        return { id: snap.id, ...snap.data() } as Order;
+        const data = snap.data();
+        return {
+          id: snap.id,
+          ...data,
+          createdAt: parseFirestoreDate(data.createdAt),
+        } as Order;
       }
     } catch {
       // ignore
@@ -199,13 +226,27 @@ export async function getOrdersByUser(userId: string): Promise<Order[]> {
   let dbOrders: Order[] = [];
   if (isFirebaseConfigured()) {
     try {
-      const q = query(
-        collection(db, 'orders'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-      const snap = await getDocs(q);
-      dbOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+      let snap;
+      try {
+        const q = query(
+          collection(db, 'orders'),
+          where('userId', '==', userId),
+          orderBy('createdAt', 'desc')
+        );
+        snap = await getDocs(q);
+      } catch {
+        const q = query(collection(db, 'orders'), where('userId', '==', userId));
+        snap = await getDocs(q);
+      }
+      dbOrders = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          createdAt: parseFirestoreDate(data.createdAt),
+        } as Order;
+      });
+      dbOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch {
       // ignore
     }
@@ -236,11 +277,24 @@ export async function getAllOrders(): Promise<Order[]> {
   let dbOrders: Order[] = [];
   if (isFirebaseConfigured()) {
     try {
-      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      dbOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
-    } catch {
-      // ignore
+      let snap;
+      try {
+        const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+        snap = await getDocs(q);
+      } catch {
+        snap = await getDocs(collection(db, 'orders'));
+      }
+      dbOrders = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          createdAt: parseFirestoreDate(data.createdAt),
+        } as Order;
+      });
+      dbOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (e) {
+      console.warn('Firebase getAllOrders error:', e);
     }
   }
 
@@ -332,9 +386,27 @@ export async function createCustomerMessage(
 
 export async function getCustomerMessages(): Promise<CustomerMessage[]> {
   if (!isFirebaseConfigured()) return DEMO_MESSAGES;
-  const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as CustomerMessage));
+  try {
+    let snap;
+    try {
+      const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
+      snap = await getDocs(q);
+    } catch {
+      snap = await getDocs(collection(db, 'messages'));
+    }
+    const msgs = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        createdAt: parseFirestoreDate(data.createdAt),
+      } as CustomerMessage;
+    });
+    msgs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return msgs;
+  } catch {
+    return DEMO_MESSAGES;
+  }
 }
 
 export async function updateMessageStatus(
