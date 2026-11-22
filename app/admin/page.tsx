@@ -35,6 +35,7 @@ import {
   FiTruck,
   FiCheckCircle,
   FiCreditCard,
+  FiRefreshCw,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -66,6 +67,7 @@ export default function AdminDashboard() {
 
   const [tab, setTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Orders filters state
   const [orderFilter, setOrderFilter] = useState<string>('all');
@@ -103,23 +105,37 @@ export default function AdminDashboard() {
     }
   }, [user, profile, authLoading, router]);
 
+  const fetchDashboardData = async (showToast = false) => {
+    try {
+      setRefreshing(true);
+      const [p, o, m, s] = await Promise.all([
+        getProducts(),
+        getAllOrders(),
+        getCustomerMessages(),
+        getStoreSettings(),
+      ]);
+      setProducts(p);
+      setOrders(o);
+      setMessages(m);
+      if (s) {
+        setSettings(s);
+        if (s.bankDetails) setBankForm(s.bankDetails);
+      }
+      if (m.length > 0) setSelectedMessage(m[0]);
+      if (showToast) {
+        toast.success('Dashboard synced with latest data');
+      }
+    } catch {
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     if (profile?.role === 'admin') {
-      Promise.all([getProducts(), getAllOrders(), getCustomerMessages(), getStoreSettings()])
-        .then(([p, o, m, s]) => {
-          setProducts(p);
-          setOrders(o);
-          setMessages(m);
-          if (s) {
-            setSettings(s);
-            if (s.bankDetails) setBankForm(s.bankDetails);
-          }
-          if (m.length > 0) setSelectedMessage(m[0]);
-        })
-        .catch(() => {
-          toast.error('Failed to load dashboard data');
-        })
-        .finally(() => setLoading(false));
+      fetchDashboardData(false);
     }
   }, [profile]);
 
@@ -351,12 +367,24 @@ export default function AdminDashboard() {
             Tunmise Aladire Asooke
           </p>
         </div>
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-xs sm:text-sm text-[#fefce8]/80 hover:text-[#d97706] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
-        >
-          <FiArrowLeft size={14} /> <span>Storefront</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fetchDashboardData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 text-xs sm:text-sm text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg border border-amber-500/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+            title="Refresh dashboard data and new orders"
+          >
+            <FiRefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="font-semibold">{refreshing ? 'Syncing...' : 'Refresh'}</span>
+          </button>
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-xs sm:text-sm text-[#fefce8]/80 hover:text-[#d97706] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
+          >
+            <FiArrowLeft size={14} /> <span className="hidden xs:inline sm:inline">Storefront</span>
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
@@ -523,7 +551,7 @@ export default function AdminDashboard() {
                       value={bankForm.accountNumber}
                       onChange={(e) => setBankForm((b) => ({ ...b, accountNumber: e.target.value }))}
                       placeholder="e.g. 1009183129"
-                      className="w-full text-sm p-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white font-mono font-bold tracking-widest transition-colors"
+                      className="w-full text-sm px-3.5 py-3 bg-[#faf8f5] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d97706] focus:bg-white font-mono font-bold tracking-wide transition-colors"
                     />
                   </div>
 
@@ -831,7 +859,18 @@ export default function AdminDashboard() {
             {/* Header Row */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-serif font-bold text-[#18181b]">Customer Orders</h2>
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-2xl font-serif font-bold text-[#18181b]">Customer Orders</h2>
+                  <button
+                    type="button"
+                    onClick={() => fetchDashboardData(true)}
+                    disabled={refreshing}
+                    className="p-1.5 text-gray-400 hover:text-[#c2410c] hover:bg-orange-50 rounded-lg border border-gray-200 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    title="Refresh orders list"
+                  >
+                    <FiRefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#c2410c]' : ''}`} />
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400 mt-0.5">Status updates automatically email the customer.</p>
               </div>
               {/* Filter Pills */}
