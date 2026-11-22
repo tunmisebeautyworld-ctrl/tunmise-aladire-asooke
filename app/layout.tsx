@@ -10,6 +10,17 @@ export const metadata: Metadata = {
   description:
     'Elevating Tradition. Embracing Modernity. Shop authentic Asooke and Adire clothing crafted with contemporary elegance.',
   keywords: 'Asooke, Adire, Nigerian fashion, African clothing, tie-dye, Tunmise Aladire',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+  },
   openGraph: {
     title: 'Tunmise Aladire Asooke',
     description: 'Modern African fashion house. Elevating Tradition. Embracing Modernity.',

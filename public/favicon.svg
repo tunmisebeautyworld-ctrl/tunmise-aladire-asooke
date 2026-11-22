@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d286d"/>
+      <stop offset="45%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f0d28"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#f59e0b"/>
+      <stop offset="70%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="terraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="35%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="luxuryGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#f59e0b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect x="14" y="14" width="484" height="484" rx="98" fill="none" stroke="url(#borderGrad)" stroke-width="8" stroke-opacity="0.85"/>
+  <rect x="28" y="28" width="456" height="456" rx="84" fill="none" stroke="#f59e0b" stroke-width="2" stroke-opacity="0.35"/>
+
+  <g opacity="0.08" fill="none" stroke="#fefce8" stroke-width="3">
+    <circle cx="256" cy="256" r="190" stroke-dasharray="8 12"/>
+    <circle cx="256" cy="256" r="160" stroke-dasharray="14 10"/>
+    <circle cx="256" cy="256" r="130" stroke-dasharray="6 8"/>
+  </g>
+
+  <g stroke="#f59e0b" stroke-width="2.5" opacity="0.4" stroke-linecap="round">
+    <line x1="56" y1="72" x2="72" y2="56"/>
+    <line x1="68" y1="84" x2="84" y2="68"/>
+    <line x1="80" y1="96" x2="96" y2="80"/>
+
+    <line x1="456" y1="72" x2="440" y2="56"/>
+    <line x1="444" y1="84" x2="428" y2="68"/>
+    <line x1="432" y1="96" x2="416" y2="80"/>
+
+    <line x1="56" y1="440" x2="72" y2="456"/>
+    <line x1="68" y1="428" x2="84" y2="444"/>
+    <line x1="80" y1="416" x2="96" y2="432"/>
+
+    <line x1="456" y1="440" x2="440" y2="456"/>
+    <line x1="444" y1="428" x2="428" y2="444"/>
+    <line x1="432" y1="416" x2="416" y2="432"/>
+  </g>
+
+  <g filter="url(#luxuryGlow)">
+    <path d="M 256 122 L 140 376 L 184 376 L 256 216 L 328 376 L 372 376 Z" fill="url(#terraGrad)"/>
+    <path d="M 124 140 C 124 135 130 130 138 130 L 374 130 C 382 130 388 135 388 140 L 388 170 C 388 175 382 178 374 178 L 350 178 C 342 178 336 174 336 166 L 176 166 C 176 174 170 178 162 178 L 138 178 C 130 178 124 175 124 170 Z" fill="url(#goldGrad)"/>
+    <path d="M 238 178 L 274 178 L 274 382 C 274 387 269 390 264 390 L 248 390 C 243 390 238 387 238 382 Z" fill="url(#goldGrad)"/>
+    <path d="M 198 296 L 314 296 L 314 324 L 198 324 Z" fill="url(#goldGrad)" opacity="0.95"/>
+    <polygon points="256,290 274,310 256,330 238,310" fill="#fef08a" stroke="#d97706" stroke-width="2"/>
+    <polygon points="256,92 268,106 256,120 244,106" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+    <circle cx="218" cy="310" r="3.5" fill="#1e1b4b"/>
+    <circle cx="294" cy="310" r="3.5" fill="#1e1b4b"/>
+  </g>
+</svg>
