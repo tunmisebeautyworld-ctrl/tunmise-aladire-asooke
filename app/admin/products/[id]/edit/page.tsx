@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { FiArrowLeft, FiTrash2, FiUpload, FiLink } from 'react-icons/fi';
-import { DEMO_PRODUCTS } from '@/lib/demoData';
 import type { Product } from '@/types';
 
 const CATEGORIES = ['asooke', 'adire', 'beads-and-accessories', 'accessories'];
@@ -105,11 +104,7 @@ export default function EditProductPage() {
   useEffect(() => {
     async function loadProduct() {
       try {
-        let p = await getProductById(id);
-        if (!p) {
-          const cleanId = id.replace(/^demo-/, '');
-          p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
-        }
+        const p = await getProductById(id);
         if (p) {
           setForm({
             name: p.name,

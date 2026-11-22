@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, Order, UserProfile, CustomerMessage, StoreSettings, BankDetails } from '@/types';
-import { DEMO_MESSAGES, DEMO_PRODUCTS } from './demoData';
+import { DEMO_MESSAGES, STORE_PRODUCTS } from './demoData';
 
 export function isFirebaseConfigured(): boolean {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBkc_F8XVYxD58UtIF4O6amVAxvR3wzvyA';
@@ -50,93 +50,127 @@ export function parseFirestoreDate(val: unknown): Date {
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
+export function getDeletedProductIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem('tunmise_deleted_products');
+    if (raw) return new Set(JSON.parse(raw));
+  } catch {
+    // fallback
+  }
+  return new Set();
+}
+
+export function markProductDeletedLocally(id: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const deleted = getDeletedProductIds();
+    deleted.add(id);
+    localStorage.setItem('tunmise_deleted_products', JSON.stringify(Array.from(deleted)));
+  } catch {
+    // fallback
+  }
+}
+
 export async function getProducts(): Promise<Product[]> {
-  let dbProducts: Product[] = [];
+  const deletedIds = getDeletedProductIds();
   if (isFirebaseConfigured()) {
     try {
       const snap = await getDocs(collection(db, 'products'));
-      dbProducts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
-    } catch {
-      // Fallback if network fails
+      const dbProducts = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as Product))
+        .filter((p) => !deletedIds.has(p.id));
+      if (dbProducts.length > 0) {
+        return dbProducts;
+      }
+    } catch (e) {
+      console.warn('Could not read products from Firestore:', e);
     }
   }
-  const all = [...dbProducts];
-  DEMO_PRODUCTS.forEach((dp) => {
-    if (!all.some((ap) => ap.id === dp.id)) {
-      all.push(dp);
-    }
-  });
-  return all;
+  // Fallback only if Firestore is unreachable
+  return STORE_PRODUCTS.filter((p) => !deletedIds.has(p.id));
 }
 
 export async function getFeaturedProducts(): Promise<Product[]> {
-  let dbFeatured: Product[] = [];
+  const deletedIds = getDeletedProductIds();
   if (isFirebaseConfigured()) {
     try {
       const q = query(collection(db, 'products'), where('featured', '==', true));
       const snap = await getDocs(q);
-      dbFeatured = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+      const featured = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as Product))
+        .filter((p) => !deletedIds.has(p.id));
+      if (featured.length > 0) return featured;
     } catch {
-      // Fallback if network fails
+      // fallback
     }
   }
-  const all = [...dbFeatured];
-  DEMO_PRODUCTS.filter((p) => p.featured).forEach((dp) => {
-    if (!all.some((ap) => ap.id === dp.id)) {
-      all.push(dp);
-    }
-  });
-  return all;
+  return STORE_PRODUCTS.filter((p) => p.featured && !deletedIds.has(p.id));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const cleanId = id.replace(/^demo-/, '');
-  const match = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId);
-  if (match) return match;
-  if (!isFirebaseConfigured()) return null;
-  try {
-    let snap = await getDoc(doc(db, 'products', id));
-    if (!snap.exists() && id.startsWith('demo-')) {
-      snap = await getDoc(doc(db, 'products', cleanId));
+  const deletedIds = getDeletedProductIds();
+  if (deletedIds.has(id)) return null;
+
+  if (isFirebaseConfigured()) {
+    try {
+      let snap = await getDoc(doc(db, 'products', id));
+      if (!snap.exists() && id.startsWith('demo-')) {
+        const cleanId = id.replace(/^demo-/, '');
+        if (!deletedIds.has(cleanId)) {
+          snap = await getDoc(doc(db, 'products', cleanId));
+        }
+      }
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as Product;
+      }
+    } catch {
+      // fallback
     }
-    if (!snap.exists()) return null;
-    return { id: snap.id, ...snap.data() } as Product;
-  } catch {
-    return null;
   }
+
+  // Fallback to static catalog only if exists and not deleted
+  const cleanId = id.replace(/^demo-/, '');
+  const match = STORE_PRODUCTS.find((x) => (x.id === id || x.id === cleanId) && !deletedIds.has(x.id));
+  return match || null;
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
-  let dbCats: Product[] = [];
+  const deletedIds = getDeletedProductIds();
   if (isFirebaseConfigured()) {
     try {
       const q = query(collection(db, 'products'), where('category', '==', category));
       const snap = await getDocs(q);
-      dbCats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+      const items = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as Product))
+        .filter((p) => !deletedIds.has(p.id));
+      if (items.length > 0) return items;
     } catch {
-      // Fallback
+      // fallback
     }
   }
-  const all = [...dbCats];
-  DEMO_PRODUCTS.filter(
+  return STORE_PRODUCTS.filter(
     (p) =>
-      p.category === category ||
-      (category === 'beads-and-accessories' &&
-        (p.category === 'accessories' || (p.category as string) === 'beads-and-accessories'))
-  ).forEach((dp) => {
-    if (!all.some((ap) => ap.id === dp.id)) {
-      all.push(dp);
-    }
-  });
-  return all;
+      !deletedIds.has(p.id) &&
+      (p.category === category ||
+        (category === 'beads-and-accessories' &&
+          (p.category === 'accessories' || (p.category as string) === 'beads-and-accessories')))
+  );
 }
 
 export async function createProduct(data: Omit<Product, 'id' | 'createdAt'>): Promise<string> {
-  const ref = await addDoc(collection(db, 'products'), {
+  // If product has a name, create a clean slug-based or unique ID
+  const cleanId = data.name
+    ? data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    : 'prod-' + Date.now();
+
+  const ref = doc(db, 'products', cleanId);
+  await setDoc(ref, {
     ...data,
+    id: cleanId,
     createdAt: serverTimestamp(),
   });
-  return ref.id;
+  return cleanId;
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<void> {
@@ -144,7 +178,14 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await deleteDoc(doc(db, 'products', id));
+  markProductDeletedLocally(id);
+  if (isFirebaseConfigured()) {
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (e) {
+      console.error('Failed to delete doc from Firestore:', e);
+    }
+  }
 }
 
 // ─── Orders ───────────────────────────────────────────────────────────────────

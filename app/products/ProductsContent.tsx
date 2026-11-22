@@ -49,13 +49,11 @@ export default function ProductsContent() {
   useEffect(() => {
     async function load() {
       try {
-        let data = await getProducts();
-        if (!data || data.length === 0) {
-          data = STORE_PRODUCTS;
-        }
-        setProducts(data);
-      } catch {
-        setProducts(STORE_PRODUCTS);
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

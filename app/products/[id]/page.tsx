@@ -8,7 +8,7 @@ import type { Product } from '@/types';
 import { FiShoppingCart, FiArrowLeft, FiShare2, FiMaximize2, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { STORE_PRODUCTS, DEMO_PRODUCTS } from '@/lib/demoData';
+import { STORE_PRODUCTS } from '@/lib/demoData';
 import BespokeModal from '@/components/product/BespokeModal';
 
 const COLOR_MAP: Record<string, string> = {
@@ -128,24 +128,14 @@ export default function ProductDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        let p = await getProductById(id);
-        if (!p) {
-          const cleanId = id.replace(/^demo-/, '');
-          p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
-        }
+        const p = await getProductById(id);
         setProduct(p);
         if (p) {
           setSelectedSize(p.sizes[0] || '');
           setSelectedColor(p.colors[0] ? p.colors[0].split('|')[0] : '');
         }
       } catch {
-        const cleanId = id.replace(/^demo-/, '');
-        const p = DEMO_PRODUCTS.find((x) => x.id === id || x.id === cleanId || x.id.replace(/^demo-/, '') === cleanId) || null;
-        setProduct(p);
-        if (p) {
-          setSelectedSize(p.sizes[0] || '');
-          setSelectedColor(p.colors[0] ? p.colors[0].split('|')[0] : '');
-        }
+        setProduct(null);
       } finally {
         setLoading(false);
       }
@@ -475,9 +465,11 @@ export default function ProductDetailPage() {
               </h3>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-white/70 bg-white/10 px-3 py-1 rounded-full font-mono">
-                {selectedImage + 1} / {activeImages.length}
-              </span>
+              {activeImages.length > 1 && (
+                <span className="text-xs text-white/70 bg-white/10 px-3 py-1 rounded-full font-mono">
+                  {selectedImage + 1} / {activeImages.length}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => setLightboxOpen(false)}
