@@ -54,7 +54,7 @@ export default function OrdersPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#18181b]">My Orders</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Track your custom tailoring and dispatch status</p>
+            <p className="text-xs text-gray-500 mt-0.5">Track your order dispatch and delivery status</p>
           </div>
           <Link
             href="/products"
@@ -71,7 +71,7 @@ export default function OrdersPage() {
             </div>
             <p className="text-[#18181b] text-lg font-bold">No orders placed yet</p>
             <p className="text-gray-400 text-xs mt-1 mb-6 max-w-sm mx-auto">
-              Once you complete an order, its production progress and courier details will appear here.
+              Once you place an order, its real-time preparation and courier tracking details will appear here.
             </p>
             <Link
               href="/products"
@@ -114,7 +114,7 @@ export default function OrdersPage() {
                           STATUS_PILLS[order.status] || 'bg-gray-100 text-gray-700'
                         }`}
                       >
-                        {order.status.replace('_', ' ')}
+                        {order.status === 'in_production' ? 'Packaged' : order.status.replace('_', ' ')}
                       </span>
                     </div>
                   </div>
@@ -169,7 +169,7 @@ export default function OrdersPage() {
                       href={`/track-order?orderId=${order.id}`}
                       className="inline-flex items-center gap-1.5 bg-[#18181b] hover:bg-[#312e81] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-sm active:scale-95"
                     >
-                      <FiExternalLink size={13} /> Track Atelier Progress
+                      <FiExternalLink size={13} /> Track Order Progress
                     </Link>
                   </div>
                 </div>

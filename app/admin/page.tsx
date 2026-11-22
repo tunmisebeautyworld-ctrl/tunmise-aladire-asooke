@@ -881,7 +881,7 @@ export default function AdminDashboard() {
                   { key: 'all', label: 'All', count: orders.length },
                   { key: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'pending').length },
                   { key: 'confirmed', label: 'Confirmed', count: orders.filter(o => o.status === 'confirmed').length },
-                  { key: 'in_production', label: 'In Production', count: orders.filter(o => o.status === 'in_production').length },
+                  { key: 'in_production', label: 'Packaged / Ready', count: orders.filter(o => o.status === 'in_production').length },
                   { key: 'shipped', label: 'Shipped', count: orders.filter(o => o.status === 'shipped').length },
                   { key: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered').length },
                   { key: 'cancelled', label: 'Cancelled', count: orders.filter(o => o.status === 'cancelled').length },
@@ -962,7 +962,10 @@ export default function AdminDashboard() {
                       <div>
                         <p className="font-bold text-sm text-[#18181b]">{order.customerInfo?.name}</p>
                         <p className="text-xs text-gray-500 mt-0.5">{order.customerInfo?.email}</p>
-                        <p className="text-xs text-gray-500">{order.customerInfo?.phone}</p>
+                        <p className="text-xs text-gray-500">Phone: {order.customerInfo?.phone}</p>
+                        {order.customerInfo?.whatsapp && (
+                          <p className="text-xs text-emerald-700 font-semibold">WhatsApp: {order.customerInfo.whatsapp}</p>
+                        )}
                       </div>
                       <div className="bg-[#faf8f5] rounded-xl px-3 py-2 border border-black/5 text-xs text-gray-600 leading-relaxed">
                         {order.customerInfo?.address},<br />
@@ -1081,7 +1084,9 @@ export default function AdminDashboard() {
                           className={`w-full text-xs px-3 py-2 rounded-xl font-bold border focus:outline-none focus:ring-1 focus:ring-[#d97706] cursor-pointer ${STATUS_COLORS[order.status]}`}
                         >
                           {STATUS_OPTIONS.map((s) => (
-                            <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                            <option key={s} value={s}>
+                              {s === 'in_production' ? 'packaged (ready for dispatch)' : s.replace('_', ' ')}
+                            </option>
                           ))}
                         </select>
                       </div>

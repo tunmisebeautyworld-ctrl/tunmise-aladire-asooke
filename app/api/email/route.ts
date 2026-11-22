@@ -245,8 +245,8 @@ export async function POST(req: NextRequest) {
 
         const statusTitles: Record<Order['status'], string> = {
           pending: 'Received & Verifying',
-          confirmed: 'Confirmed & Queued',
-          in_production: 'In Atelier Tailoring',
+          confirmed: 'Confirmed & Packaged',
+          in_production: 'Quality Checked & Packaged',
           shipped: 'Dispatched for Delivery',
           delivered: 'Delivered',
           cancelled: 'Cancelled',

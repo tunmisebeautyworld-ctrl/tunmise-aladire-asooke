@@ -95,7 +95,7 @@ export function getOrderReceiptHtml(order: Order): string {
       </span>
       <h1 style="font-family: Georgia, serif; font-size: 26px; color: #18181b; margin: 14px 0 6px 0;">Thank You for Your Order</h1>
       <p style="margin: 0; font-size: 14px; color: #71717a;">
-        Dear ${order.customerInfo.name}, we have received your payment and our atelier has begun preparing your pieces.
+        Dear ${order.customerInfo.name}, your payment is confirmed and our team is preparing your ready-to-wear pieces for dispatch. Delivery takes a maximum of 72 hours depending on our delivery partners, with delivery fees paid on delivery.
       </p>
     </div>
 
@@ -144,7 +144,8 @@ export function getOrderReceiptHtml(order: Order): string {
         ${order.customerInfo.name}<br>
         ${order.customerInfo.address}<br>
         ${order.customerInfo.city}, ${order.customerInfo.state}<br>
-        Phone: ${order.customerInfo.phone}
+        Phone: ${order.customerInfo.phone}${order.customerInfo.whatsapp ? `<br>WhatsApp: ${order.customerInfo.whatsapp}` : ''}<br>
+        <span style="font-size: 11px; color: #b45309; font-weight: 600;">Delivery takes max 72 hrs. Delivery fee paid directly on delivery to rider.</span>
       </p>
     </div>
 
@@ -183,7 +184,7 @@ export function getAdminNewOrderAlertHtml(order: Order): string {
       </span>
       <h1 style="font-family: Georgia, serif; font-size: 24px; color: #18181b; margin: 12px 0 6px 0;">New Paid Customer Order</h1>
       <p style="margin: 0; font-size: 14px; color: #71717a;">
-        A new order has been paid via Paystack and is ready for packing or tailored production.
+        A new order has been paid and is ready for quality inspection and packaging for dispatch.
       </p>
     </div>
 
@@ -200,6 +201,11 @@ export function getAdminNewOrderAlertHtml(order: Order): string {
         <td style="padding: 4px 0; color: #71717a;">Phone Number:</td>
         <td style="padding: 4px 0; font-weight: 600; color: #18181b;">${order.customerInfo.phone}</td>
       </tr>
+      ${order.customerInfo.whatsapp ? `
+      <tr>
+        <td style="padding: 4px 0; color: #71717a;">WhatsApp Number:</td>
+        <td style="padding: 4px 0; font-weight: 600; color: #047857;">${order.customerInfo.whatsapp}</td>
+      </tr>` : ''}
       <tr>
         <td style="padding: 4px 0; color: #71717a;">Destination:</td>
         <td style="padding: 4px 0; color: #18181b;">${order.customerInfo.address}, ${order.customerInfo.city}, ${order.customerInfo.state}</td>
@@ -559,28 +565,28 @@ export function getOrderStatusUpdateHtml(order: Order, notes?: string): string {
       subtitle: 'Awaiting Payment Verification',
       badgeBg: 'rgba(217, 119, 6, 0.1)',
       badgeColor: '#d97706',
-      description: 'Your order has been received. Our concierge team is verifying payment confirmation before production begins.',
+      description: 'Your order has been received. Our team is verifying payment confirmation in under 5 minutes.',
     },
     confirmed: {
       title: 'Order Confirmed',
-      subtitle: 'Payment Verified & Queued',
+      subtitle: 'Payment Verified & Ready',
       badgeBg: 'rgba(30, 27, 75, 0.08)',
       badgeColor: '#1e1b4b',
-      description: 'Your order and payment have been confirmed. Our cutting team is preparing the fabric cuts for your garments.',
+      description: 'Your order and payment have been confirmed. Our team is preparing your ready-to-wear pieces for quality inspection and packaging.',
     },
     in_production: {
-      title: 'In Atelier Tailoring',
-      subtitle: 'Hand-Crafting in Progress',
+      title: 'Quality Checked & Packaged',
+      subtitle: 'Packaged & Ready for Dispatch',
       badgeBg: 'rgba(194, 65, 12, 0.12)',
       badgeColor: '#c2410c',
-      description: 'Our master artisans and weavers at our Lagos studio have begun tailoring and detailing your selected pieces.',
+      description: 'Your ready-to-wear pieces have passed our quality check and are packaged, ready for courier handover.',
     },
     shipped: {
       title: 'Dispatched for Delivery',
-      subtitle: 'On the Way to You',
+      subtitle: 'In Transit',
       badgeBg: 'rgba(147, 51, 234, 0.1)',
       badgeColor: '#7e22ce',
-      description: 'Your package has passed our quality check, been carefully boxed, and handed over to our delivery partner for transit.',
+      description: 'Your package has been handed over to our delivery partner. Delivery takes a maximum of 72 hours depending on delivery partners, with delivery fees paid on delivery directly to the courier.',
     },
     delivered: {
       title: 'Order Delivered',
@@ -780,6 +786,7 @@ export function getAdminBankTransferAlertHtml(order: Order): string {
         <strong>${order.customerInfo.name}</strong><br>
         Email: ${order.customerInfo.email}<br>
         Phone: ${order.customerInfo.phone}<br>
+        ${order.customerInfo.whatsapp ? `WhatsApp: ${order.customerInfo.whatsapp}<br>` : ''}
         Address: ${order.customerInfo.address}, ${order.customerInfo.city}, ${order.customerInfo.state}
       </p>
     </div>
@@ -849,10 +856,10 @@ export function getBankTransferCustomerAckHtml(order: Order): string {
     <!-- Verification Info Notice -->
     <div style="background-color: #faf8f5; border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left;">
       <p style="margin: 0 0 10px 0; font-size: 13px; color: #18181b; line-height: 1.6;">
-        Our atelier finance team is currently cross-referencing your transfer of <strong>&#8358;${(p.amountPaid || order.total).toLocaleString()}</strong>${p.senderBank ? ` from <strong>${p.senderBank}</strong>` : ''}.
+        Our finance team is currently cross-referencing your transfer of <strong>&#8358;${(p.amountPaid || order.total).toLocaleString()}</strong>${p.senderBank ? ` from <strong>${p.senderBank}</strong>` : ''}.
       </p>
       <p style="margin: 0; font-size: 13px; color: #52525b; line-height: 1.6;">
-        We confirm orders in under 5 minutes. Once confirmed, you will automatically receive an <strong>official itemized receipt</strong>, and your garments will immediately enter our atelier cutting queue.
+        We confirm orders in under 5 minutes. Once confirmed, you will automatically receive an <strong>official itemized receipt</strong>, and your ready-to-wear garments will be prepared for dispatch. Delivery takes a maximum of 72 hours depending on our delivery partners, with delivery fees paid on delivery.
       </p>
     </div>
 

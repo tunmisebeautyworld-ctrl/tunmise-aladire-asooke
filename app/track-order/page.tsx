@@ -23,22 +23,22 @@ const STAGES = [
   {
     key: 'pending',
     title: 'Order Received',
-    description: 'Payment details submitted and pending verification',
+    description: 'Payment details submitted and pending verification (under 5 mins)',
   },
   {
     key: 'confirmed',
     title: 'Payment Confirmed',
-    description: 'Payment verified and fabrics queued for atelier cutting',
+    description: 'Payment verified. Ready-to-wear pieces moved to packaging',
   },
   {
     key: 'in_production',
-    title: 'Atelier Tailoring',
-    description: 'Artisans hand-cutting and sewing your traditional garments',
+    title: 'Quality Checked & Packaged',
+    description: 'Garments inspected and packaged for handover to delivery partner',
   },
   {
     key: 'shipped',
     title: 'Dispatched for Delivery',
-    description: 'Package handed over to courier for transit',
+    description: 'Handed to delivery partner — delivery takes max 72 hours',
   },
   {
     key: 'delivered',
@@ -121,13 +121,13 @@ function OrderTrackerContent() {
         {/* Header Banner */}
         <div className="text-center space-y-3">
           <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#c2410c] bg-[#c2410c]/10 px-3.5 py-1 rounded-full inline-block">
-            Real-Time Logistics & Atelier Tracker
+            Real-Time Logistics & Order Tracker
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#18181b] tracking-tight">
             Track Your Order
           </h1>
           <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto leading-relaxed">
-            Enter your order reference number to follow the craftsmanship and dispatch journey of your Tunmise Aladire Asooke garments.
+            Enter your order reference number to follow the dispatch and delivery status of your ready-to-wear garments.
           </p>
         </div>
 
@@ -226,7 +226,11 @@ function OrderTrackerContent() {
                         : 'bg-amber-400 text-black'
                     }`}
                   >
-                    {order.status === 'pending' ? 'Verification Pending' : order.status.replace('_', ' ')}
+                    {order.status === 'pending'
+                      ? 'Verification Pending'
+                      : order.status === 'in_production'
+                      ? 'Packaged & Ready'
+                      : order.status.replace('_', ' ')}
                   </span>
                 </div>
               </div>
@@ -302,7 +306,7 @@ function OrderTrackerContent() {
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
-                  Thank you for submitting your transfer details. Our accounts team verifies all transfers within 5 minutes. Once confirmed, your official order receipt will be sent to <span className="font-bold text-[#18181b]">{order.customerInfo.email}</span> and your garments will be queued for atelier cutting.
+                  Thank you for submitting your transfer details. Our accounts team verifies all transfers within 5 minutes. Once confirmed, your official order receipt will be sent to <span className="font-bold text-[#18181b]">{order.customerInfo.email}</span> and your ready-to-wear garments will be packaged for dispatch. Delivery takes a maximum of 72 hours depending on our delivery partners, with delivery fees paid on delivery.
                 </p>
                 {order.paymentDetails && (
                   <div className="bg-white/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-amber-200/60 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
@@ -357,12 +361,20 @@ function OrderTrackerContent() {
                   <p className="font-semibold text-gray-800">
                     {order.customerInfo.city}, {order.customerInfo.state}
                   </p>
-                  <div className="pt-3 border-t border-gray-100 space-y-1 text-xs">
+                  <div className="pt-3 border-t border-gray-100 space-y-1.5 text-xs">
                     <p className="flex items-center gap-2 text-gray-500">
                       <FiPhone size={13} /> {order.customerInfo.phone}
                     </p>
+                    {order.customerInfo.whatsapp && (
+                      <p className="flex items-center gap-2 text-emerald-700 font-medium">
+                        <span className="text-[10px] font-bold uppercase bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">WhatsApp</span> {order.customerInfo.whatsapp}
+                      </p>
+                    )}
                     <p className="flex items-center gap-2 text-gray-500">
                       <FiMail size={13} /> {order.customerInfo.email}
+                    </p>
+                    <p className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200/60 mt-2 font-medium">
+                      Delivery fee is paid directly to our delivery partner upon delivery.
                     </p>
                   </div>
                 </div>
@@ -439,7 +451,7 @@ function OrderTrackerContent() {
                   </h4>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                  Our customer concierge and master tailors are available Monday through Saturday (9:00 AM – 7:00 PM) at our Lagos Studio.
+                  Our customer concierge is available Monday through Saturday (9:00 AM – 7:00 PM) to assist you with dispatch and order updates.
                 </p>
               </div>
 
@@ -463,7 +475,7 @@ function OrderTrackerContent() {
               Ready to Track Your Order
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-              Paste your order number into the search field above to view real-time atelier tailoring status, dispatch timeline, and courier notes.
+              Paste your order number into the search field above to view real-time packaging status, dispatch timeline, and courier notes.
             </p>
           </div>
         )}

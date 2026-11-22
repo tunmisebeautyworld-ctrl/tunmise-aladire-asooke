@@ -64,10 +64,12 @@ export default function CheckoutPage() {
     name: '',
     email: user?.email || '',
     phone: '',
+    whatsapp: '',
     address: '',
     city: '',
     state: '',
   });
+  const [sameAsPhone, setSameAsPhone] = useState(false);
 
   // "I Have Paid" Transfer Confirmation Form
   const [senderName, setSenderName] = useState('');
@@ -100,9 +102,20 @@ export default function CheckoutPage() {
 
   const handleDeliveryChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'phone' && sameAsPhone) {
+      setForm((prev) => ({ ...prev, phone: value, whatsapp: value }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
     if (name === 'name' && (!senderName || senderName === form.name)) {
       setSenderName(value);
+    }
+  };
+
+  const handleSameAsPhoneToggle = (checked: boolean) => {
+    setSameAsPhone(checked);
+    if (checked) {
+      setForm((prev) => ({ ...prev, whatsapp: prev.phone }));
     }
   };
 
@@ -129,11 +142,12 @@ export default function CheckoutPage() {
       !form.name.trim() ||
       !form.email.trim() ||
       !form.phone.trim() ||
+      !form.whatsapp.trim() ||
       !form.address.trim() ||
       !form.city.trim() ||
       !form.state.trim()
     ) {
-      toast.error('Please fill in all delivery details to continue');
+      toast.error('Please fill in all delivery details, including Phone and WhatsApp numbers');
       return;
     }
     if (!senderName) {
@@ -161,11 +175,12 @@ export default function CheckoutPage() {
       !form.name.trim() ||
       !form.email.trim() ||
       !form.phone.trim() ||
+      !form.whatsapp.trim() ||
       !form.address.trim() ||
       !form.city.trim() ||
       !form.state.trim()
     ) {
-      toast.error('Please fill out all delivery information fields');
+      toast.error('Please fill out all delivery fields, including phone and WhatsApp numbers');
       setCurrentStep(1);
       return;
     }
@@ -245,7 +260,7 @@ export default function CheckoutPage() {
       toast.success('Transfer submitted! Redirecting to your live order tracker...');
       router.push(`/track-order?orderId=${orderId}`);
     } catch {
-      toast.error('Failed to submit order. Please contact atelier support.');
+      toast.error('Failed to submit order. Please contact customer support.');
     } finally {
       setLoading(false);
     }
@@ -263,7 +278,7 @@ export default function CheckoutPage() {
             Complete Your Order
           </h1>
           <p className="text-sm text-gray-600 max-w-lg mx-auto">
-            Follow the 3 easy steps below to place your bespoke order. We verify transfers in under 5 minutes.
+            All garments are ready-to-wear. We verify transfers in under 5 minutes. Delivery takes max 72 hours with delivery fees paid on delivery.
           </p>
         </div>
 
@@ -330,7 +345,7 @@ export default function CheckoutPage() {
                       1
                     </span>
                     <h2 className="font-serif text-lg sm:text-xl font-bold text-[#18181b]">
-                      Delivery Information
+                      Delivery & Contact Details
                     </h2>
                   </div>
                   <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">
@@ -338,30 +353,128 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {[
-                    { name: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Babatunde Lawal', col: 1 },
-                    { name: 'email', label: 'Email Address (for order receipt & tracking) *', type: 'email', placeholder: 'you@example.com', col: 1 },
-                    { name: 'phone', label: 'Phone Number (for courier contact) *', type: 'tel', placeholder: '+234 800 000 0000', col: 1 },
-                    { name: 'address', label: 'Street Delivery Address *', type: 'text', placeholder: 'e.g. 5 John Street, Massallacin, Ilupeju', col: 2 },
-                    { name: 'city', label: 'City / District *', type: 'text', placeholder: 'e.g. Ikeja / Lagos Island', col: 1 },
-                  ].map((f) => (
-                    <div key={f.name} className={f.col === 2 ? 'sm:col-span-2' : ''}>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                        {f.label}
-                      </label>
-                      <input
-                        name={f.name}
-                        type={f.type}
-                        required
-                        placeholder={f.placeholder}
-                        value={(form as Record<string, string>)[f.name]}
-                        onChange={handleDeliveryChange}
-                        className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
-                      />
-                    </div>
-                  ))}
+                {/* Ready-to-wear & Delivery fee notice */}
+                <div className="bg-[#faf8f5] rounded-2xl p-4 border border-black/5 flex items-start gap-3 text-xs text-gray-700">
+                  <FiInfo size={18} className="text-[#c2410c] flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-[#18181b] uppercase tracking-wide text-[11px]">
+                      Ready-to-Wear Fulfillment Policy
+                    </p>
+                    <p className="text-gray-600 leading-relaxed text-xs">
+                      All pieces in your cart are already made and in stock. Delivery takes a <strong>maximum of 72 hours</strong> depending on our delivery partners. <strong>Delivery fees are paid on delivery</strong> directly to the courier partner upon arrival.
+                    </p>
+                  </div>
+                </div>
 
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      name="name"
+                      type="text"
+                      required
+                      placeholder="e.g. Babatunde Lawal"
+                      value={form.name}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* Email Address */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                      Email Address (for official receipt & order tracking) *
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="you@example.com"
+                      value={form.email}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* Phone Number (Calls) */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                      Phone Number (for calls) *
+                    </label>
+                    <input
+                      name="phone"
+                      type="tel"
+                      required
+                      placeholder="+234 800 000 0000"
+                      value={form.phone}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* WhatsApp Number */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+                        WhatsApp Number *
+                      </label>
+                    </div>
+                    <input
+                      name="whatsapp"
+                      type="tel"
+                      required
+                      placeholder="+234 800 000 0000"
+                      value={form.whatsapp}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                    <label className="inline-flex items-center gap-2 mt-2 text-xs text-gray-600 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={sameAsPhone}
+                        onChange={(e) => handleSameAsPhoneToggle(e.target.checked)}
+                        className="w-3.5 h-3.5 text-[#c2410c] rounded border-gray-300 focus:ring-[#c2410c]"
+                      />
+                      <span className="text-[11px]">Same as phone number</span>
+                    </label>
+                  </div>
+
+                  {/* Street Delivery Address */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                      Street Delivery Address *
+                    </label>
+                    <input
+                      name="address"
+                      type="text"
+                      required
+                      placeholder="e.g. 5 John Street, Ilupeju"
+                      value={form.address}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                      City / Area *
+                    </label>
+                    <input
+                      name="city"
+                      type="text"
+                      required
+                      placeholder="e.g. Ikeja / Lekki Phase 1"
+                      value={form.city}
+                      onChange={handleDeliveryChange}
+                      className="w-full px-4 py-3 bg-[#faf8f5] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#c2410c] focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* Destination State */}
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
                       Destination State *
@@ -535,7 +648,7 @@ export default function CheckoutPage() {
                     </h2>
                   </div>
                   <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                    Instant Atelier Alert
+                    Instant Admin Alert
                   </span>
                 </div>
 
@@ -550,7 +663,7 @@ export default function CheckoutPage() {
                 {/* Pre-filled Order & Customization Summary Box */}
                 <div className="bg-[#faf8f5] rounded-2xl p-4 sm:p-5 border border-black/5 space-y-3">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Pre-filled Pieces & Customizations to Confirm
+                    Pre-filled Pieces to Confirm
                   </p>
                   <div className="divide-y divide-gray-200/60">
                     {items.map((item, i) => (
@@ -695,7 +808,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <p className="text-center text-xs text-gray-400">
-                  By clicking submit, our admin is alerted immediately to confirm your transfer and queue your garments for tailoring.
+                  By clicking submit, our admin is alerted immediately to confirm your transfer. Your ready-to-wear pieces will be packaged and dispatched within 24–72 hours.
                 </p>
               </form>
             )}
@@ -744,8 +857,8 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between items-center text-xs text-gray-500">
                       <span>Delivery Fee</span>
-                      <span className="text-emerald-600 font-bold uppercase text-[10px] bg-emerald-50 px-2 py-0.5 rounded">
-                        Calculated at Fulfilment
+                      <span className="text-amber-800 font-bold uppercase text-[10px] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        Paid on Delivery (to rider)
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-base font-bold text-[#18181b]">
@@ -762,13 +875,13 @@ export default function CheckoutPage() {
                       <FiClock size={14} /> Under 5 Mins Confirmation
                     </div>
                     <p className="text-[11px] text-gray-600 leading-relaxed">
-                      We manually verify all bank transfers in under 5 minutes to fast-track your atelier production.
+                      We verify transfers within 5 minutes. Ready-to-wear pieces dispatch within 24–72 hours. Delivery fee is paid on delivery.
                     </p>
                   </div>
 
                   <div className="bg-[#faf8f5] p-3 rounded-2xl border border-black/5 flex items-center gap-2.5 text-xs text-gray-600">
                     <FiShield size={16} className="text-[#c2410c] flex-shrink-0" />
-                    <span>Direct atelier transfer with manual verification guarantees order security.</span>
+                    <span>Direct Nigerian bank transfer with rapid verification guarantees order security.</span>
                   </div>
                 </>
               )}

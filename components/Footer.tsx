@@ -155,21 +155,23 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-base text-[#c2410c] mb-1">Domestic Nigerian Shipping</h4>
             <p className="leading-relaxed">
-              * **Lagos Delivery:** 1 - 2 business days (₦2,500 base rate).
+              * **Ready-to-Wear:** All catalog pieces are already made, quality-checked, and packaged for swift dispatch.
               <br />
-              * **Abuja / Port Harcourt / Interstate:** 3 - 5 business days (₦4,500 base rate).
+              * **Delivery Timeline:** Delivery takes a **maximum of 72 hours** depending on our delivery partners.
+              <br />
+              * **Delivery Fees:** Delivery fees are **paid on delivery** directly to the delivery rider based on your location.
             </p>
           </div>
           <div>
             <h4 className="font-bold text-base text-[#c2410c] mb-1">International Shipping</h4>
             <p className="leading-relaxed">
-              * Shipped via DHL Express (5 - 8 business days worldwide). Rates calculated dynamically at checkout based on weight and country.
+              * Shipped via DHL Express (5 - 8 business days worldwide). Rates calculated at fulfillment based on weight and destination country.
             </p>
           </div>
           <div>
-            <h4 className="font-bold text-base text-[#c2410c] mb-1">Returns & Adjustments</h4>
+            <h4 className="font-bold text-base text-[#c2410c] mb-1">Returns & Exchanges</h4>
             <p className="leading-relaxed">
-              * Since our traditional pieces and custom collections are hand-tailored to order, we do not accept general returns. However, we offer **free alterations** within 14 days of delivery if your clothing sizing requires adjustments.
+              * All pieces are quality-inspected ready-to-wear garments. If you need assistance or a size exchange, please reach out to our concierge within 7 days of delivery.
             </p>
           </div>
         </div>
